@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository overview
 
-This repo contains a single self-contained HTML file, `crossformat step.html` (note the space in the filename). It is a client-side "CrossFormat" tool that converts Excel shop-registration files into a pipe-delimited `.txt` format for a partner's QR API onboarding pipeline, validating structure along the way. There is no build system, package manager, test suite, or server — the file is opened directly in a browser.
+This repo contains a single self-contained HTML file, `crossformatstep.html`. It is a client-side "CrossFormat" tool that converts Excel shop-registration files into a pipe-delimited `.txt` format for a partner's QR API onboarding pipeline, validating structure along the way. There is no build system, package manager, test suite, or server — the file is opened directly in a browser.
 
 ## Running / developing
 
-- Open `crossformat step.html` directly in a browser (e.g. `open "crossformat step.html"` on macOS). No install step, no dev server, no bundler.
+- Open `crossformatstep.html` directly in a browser (e.g. `open crossformatstep.html` on macOS). No install step, no dev server, no bundler.
 - All dependencies are loaded from CDNs in `<head>`: SheetJS (`xlsx@0.18.5`) for Excel parsing, Font Awesome for icons, Google Fonts (Inter/Outfit/JetBrains Mono). An internet connection is required for the page to render/function correctly.
 - Since it's a single static file, "testing" a change means reloading the file in the browser and manually running the converter with sample `.xlsx`/`.xls` files.
 
