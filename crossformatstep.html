@@ -1996,7 +1996,9 @@
                 reader.onload = (e) => {
                     try {
                         const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
+                        // cellDates marks Excel-auto-converted date cells as t:'d' so
+                        // fixDateCorruptedCells can recover them below.
+                        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
 
                         if (workbook.SheetNames.length === 0) {
                             throw new Error('Workbook contains no sheets.');
@@ -2005,12 +2007,14 @@
                         const firstSheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[firstSheetName];
                         const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', raw: false });
+                        const dateFixes = fixDateCorruptedCells(worksheet, rows);
 
                         state.uploadedFiles.push({
                             name: file.name,
                             rows: rows,
                             status: 'passed',
-                            logs: []
+                            logs: [],
+                            dateFixes: dateFixes
                         });
                     } catch (err) {
                         console.error(err);
@@ -2036,6 +2040,60 @@
         function isRowEmpty(row) {
             if (!row || row.length === 0) return true;
             return row.every(cell => cell === undefined || cell === null || String(cell).trim() === '');
+        }
+
+        // Excel silently reinterprets things like "9/26" typed into a General cell
+        // as an actual date if the text happens to match a valid day/month pattern
+        // (invalid combos like "24/15" are correctly left as text). None of the
+        // shop-data columns in this template are meant to hold dates, so any cell
+        // Excel has stored as a date type is always a sign of lost source data —
+        // it can't be un-corrupted after the fact, only flagged for the user to
+        // re-enter (as Text) in the original file.
+        function isDateFormattedCell(cell) {
+            // With cellDates:true on XLSX.read, any cell Excel stored as a date
+            // (auto-converted or not) comes through with t === 'd'.
+            return !!cell && cell.t === 'd';
+        }
+
+        // A cell like addressNo only becomes a date because its typed value
+        // (e.g. "9/26") happened to match a valid day/month pattern under
+        // whatever locale created the file — Excel evaluated it as month=9,
+        // day=26 (otherwise it would never have converted it at all). So the
+        // formatted text's first two "/"-separated parts ARE the original
+        // month/day the user typed; only the auto-filled year is noise to drop.
+        function reconstructDateCellText(cell) {
+            if (!cell.w) return String(cell.v);
+            const parts = cell.w.split('/');
+            return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : cell.w;
+        }
+
+        function fixDateCorruptedCells(worksheet, rows) {
+            const fixes = [];
+            if (!worksheet || !worksheet['!ref']) return fixes;
+
+            const range = XLSX.utils.decode_range(worksheet['!ref']);
+            const shopDataStartRow = 3; // Excel row 4 (0-indexed row 3) is the first shop-data row
+
+            for (let r = shopDataStartRow; r <= range.e.r; r++) {
+                for (let c = range.s.c; c <= range.e.c; c++) {
+                    const cell = worksheet[XLSX.utils.encode_cell({ r, c })];
+                    if (isDateFormattedCell(cell)) {
+                        const original = cell.w || String(cell.v);
+                        const reconstructed = reconstructDateCellText(cell);
+                        if (rows[r]) rows[r][c] = reconstructed;
+
+                        const rawColName = state.templateRow3[c] || `คอลัมน์ที่ ${c + 1}`;
+                        fixes.push({
+                            excelRow: r + 1,
+                            colName: rawColName.split('\n')[0],
+                            original: original,
+                            reconstructed: reconstructed
+                        });
+                    }
+                }
+            }
+
+            return fixes;
         }
 
         function processUploadedFiles() {
@@ -2081,6 +2139,16 @@
                     file.logs.push('❌ ไม่พบข้อมูลร้านค้าในแถวที่ 4 เป็นต้นไป (No shop data rows found starting from Row 4)');
                 } else {
                     file.logs.push(`ℹ️ พบข้อมูลร้านค้าจำนวน ${shopRowsCount} แถว`);
+                }
+
+                // Cells Excel auto-converted into dates (e.g. "9/26" typed into
+                // addressNo) already got their month/day reconstructed back into
+                // `rows` in fixDateCorruptedCells — just note it happened here,
+                // no need to block export.
+                if (file.dateFixes && file.dateFixes.length > 0) {
+                    file.dateFixes.forEach(fx => {
+                        file.logs.push(`ℹ️ แถวที่ ${fx.excelRow} คอลัมน์ "${fx.colName}": Excel แปลงค่าเป็นวันที่ (${fx.original}) — ระบบแก้กลับเป็น "${fx.reconstructed}" ให้อัตโนมัติแล้ว`);
+                    });
                 }
 
                 if (file.status === 'error') {
