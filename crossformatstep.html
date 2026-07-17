@@ -2004,7 +2004,7 @@
 
                         const firstSheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[firstSheetName];
-                        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+                        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', raw: false });
 
                         state.uploadedFiles.push({
                             name: file.name,
@@ -2511,7 +2511,7 @@
 
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
-                    const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+                    const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', raw: false });
 
                     if (rows.length < 3) {
                         throw new Error('Template file must have at least 3 rows to extract Row 1 and Row 3 headers.');
