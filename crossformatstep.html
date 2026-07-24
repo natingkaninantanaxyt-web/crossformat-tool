@@ -2069,6 +2069,41 @@
             return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : cell.w;
         }
 
+        const MONTH_ABBR = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
+
+        // Fallback for when the source no longer carries any spreadsheet cell-type
+        // info at all (e.g. a .csv where SheetJS's own type-sniffing didn't happen
+        // to recognize a locale-specific short-date string like "Sep-26" as a date,
+        // so isDateFormattedCell never sees t:'d' — by the time it's plain CSV text,
+        // the only signal left is the shape of the text itself). Matches the same
+        // family of values Excel's autocorrect produces: numeric M/D(/Y) and
+        // "Mon-DD"/"DD-Mon" short-date text, in either order.
+        function reconstructIfDateLikeText(text) {
+            if (typeof text !== 'string') return null;
+            const trimmed = text.trim();
+
+            let m = /^(\d{1,2})\/(\d{1,2})(?:\/\d{2,4})?$/.exec(trimmed);
+            if (m) {
+                const month = parseInt(m[1], 10), day = parseInt(m[2], 10);
+                if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                    return `${month}/${day}`;
+                }
+                return null;
+            }
+
+            m = /^([A-Za-z]{3})-(\d{1,2})(?:-\d{2,4})?$/.exec(trimmed);
+            if (m && MONTH_ABBR[m[1].toLowerCase()]) {
+                return `${MONTH_ABBR[m[1].toLowerCase()]}/${parseInt(m[2], 10)}`;
+            }
+
+            m = /^(\d{1,2})-([A-Za-z]{3})(?:-\d{2,4})?$/.exec(trimmed);
+            if (m && MONTH_ABBR[m[2].toLowerCase()]) {
+                return `${MONTH_ABBR[m[2].toLowerCase()]}/${parseInt(m[1], 10)}`;
+            }
+
+            return null;
+        }
+
         function fixDateCorruptedCells(worksheet, rows) {
             const fixes = [];
             if (!worksheet || !worksheet['!ref']) return fixes;
@@ -2077,13 +2112,27 @@
             const shopDataStartRow = 3; // Excel row 4 (0-indexed row 3) is the first shop-data row
 
             for (let r = shopDataStartRow; r <= range.e.r; r++) {
+                if (!rows[r]) continue;
+
                 for (let c = range.s.c; c <= range.e.c; c++) {
                     const cell = worksheet[XLSX.utils.encode_cell({ r, c })];
-                    if (isDateFormattedCell(cell)) {
-                        const original = cell.w || String(cell.v);
-                        const reconstructed = reconstructDateCellText(cell);
-                        if (rows[r]) rows[r][c] = reconstructed;
+                    let original = null;
+                    let reconstructed = null;
 
+                    if (isDateFormattedCell(cell)) {
+                        original = cell.w || String(cell.v);
+                        reconstructed = reconstructDateCellText(cell);
+                    } else {
+                        const currentValue = rows[r][c];
+                        const guess = reconstructIfDateLikeText(currentValue);
+                        if (guess !== null && guess !== currentValue) {
+                            original = currentValue;
+                            reconstructed = guess;
+                        }
+                    }
+
+                    if (reconstructed !== null && reconstructed !== original) {
+                        rows[r][c] = reconstructed;
                         const rawColName = state.templateRow3[c] || `คอลัมน์ที่ ${c + 1}`;
                         fixes.push({
                             excelRow: r + 1,
