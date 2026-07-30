@@ -354,6 +354,13 @@
             grid-template-columns: 1fr;
         }
 
+        .result-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 0;
+        }
+
         .grid-two-cols {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -987,7 +994,7 @@
    CODE EDITOR / RESULT PREVIEW
    ========================================================================== */
         .panel-result {
-            align-self: start;
+            flex-shrink: 0;
         }
 
         .preview-wrapper {
@@ -1134,12 +1141,20 @@
    CONSOLE CARD & ERROR LOGGING
    ========================================================================== */
         .console-card {
-            min-height: 140px;
+            flex: 1;
+            min-height: 100px;
+        }
+
+        .console-card .card-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
         }
 
         .console-stats {
             display: flex;
-            gap: 16px;
+            gap: 14px;
+            flex-wrap: wrap;
         }
 
         .console-stat-item {
@@ -1153,7 +1168,8 @@
         .console-body {
             background: #030712;
             padding: 8px 14px;
-            height: 52px;
+            flex: 1;
+            min-height: 0;
             overflow-y: auto;
             font-family: var(--font-mono);
             font-size: 12.5px;
@@ -1782,32 +1798,61 @@
                         </div>
                     </div>
 
-                    <!-- Right Panel: Result Preview & Export -->
-                    <div class="card panel-result">
-                        <div class="card-header">
-                            <h3><i class="fa-solid fa-file-code icon-accent"></i> 2. Generated Output Preview</h3>
-                            <div class="action-group">
-                                <button class="btn-secondary btn-sm" id="btn-copy-preview">
-                                    <i class="fa-solid fa-copy"></i> Copy
-                                </button>
-                                <button class="btn-success btn-sm" id="btn-export-text" disabled>
-                                    <i class="fa-solid fa-file-export"></i> Export UTF-8
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="preview-wrapper">
-                            <div class="preview-header">
-                                <span class="preview-filename"><i class="fa-solid fa-file-lines"></i> output.txt</span>
-                                <div class="preview-header-right">
-                                    <span class="preview-info" id="preview-lines-count">0 lines generated</span>
-                                    <button class="btn-icon" id="btn-expand-preview" title="Expand full view">
-                                        <i class="fa-solid fa-expand"></i>
+                    <!-- Right Column: Result Preview + Validation Console stacked -->
+                    <div class="result-stack">
+                        <div class="card panel-result">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-file-code icon-accent"></i> 2. Generated Output Preview</h3>
+                                <div class="action-group">
+                                    <button class="btn-secondary btn-sm" id="btn-copy-preview">
+                                        <i class="fa-solid fa-copy"></i> Copy
+                                    </button>
+                                    <button class="btn-success btn-sm" id="btn-export-text" disabled>
+                                        <i class="fa-solid fa-file-export"></i> Export UTF-8
                                     </button>
                                 </div>
                             </div>
-                            <textarea id="output-text-area" class="code-editor" readonly
-                                placeholder="The generated pipe-delimited text will appear here..."></textarea>
+
+                            <div class="preview-wrapper">
+                                <div class="preview-header">
+                                    <span class="preview-filename"><i class="fa-solid fa-file-lines"></i>
+                                        output.txt</span>
+                                    <div class="preview-header-right">
+                                        <span class="preview-info" id="preview-lines-count">0 lines generated</span>
+                                        <button class="btn-icon" id="btn-expand-preview" title="Expand full view">
+                                            <i class="fa-solid fa-expand"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <textarea id="output-text-area" class="code-editor" readonly
+                                    placeholder="The generated pipe-delimited text will appear here..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Validation & Log Console -->
+                        <div class="card console-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-terminal icon-accent"></i> Validation Console</h3>
+                                <div class="console-stats">
+                                    <span class="console-stat-item text-success"><i
+                                            class="fa-solid fa-circle-check"></i>
+                                        Passed: <strong id="val-passed-count">0</strong></span>
+                                    <span class="console-stat-item text-warning"><i
+                                            class="fa-solid fa-triangle-exclamation"></i> Issues: <strong
+                                            id="val-issue-count">0</strong></span>
+                                    <span class="console-stat-item text-danger"><i
+                                            class="fa-solid fa-circle-xmark"></i>
+                                        Error: <strong id="val-err-count">0</strong></span>
+                                </div>
+                            </div>
+                            <div class="console-body" id="validation-console">
+                                <div class="console-placeholder">
+                                    <i class="fa-solid fa-info-circle"></i>
+                                    <p>Upload Excel files — structural validation and output verification (quotes /
+                                        pipe
+                                        counts) run automatically.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1855,29 +1900,6 @@
                             <i class="fa-solid fa-triangle-exclamation"></i>
                             <span>ค่าเริ่มต้นของสคริปต์คือ dry-run เสมอ ต้องใส่ <code>--go-live</code> และพิมพ์
                                 <code>PROD</code> เองเท่านั้น ถึงจะส่งไฟล์เข้า KBank จริง</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Validation & Log Console (Bottom Panel) -->
-                <div class="card console-card">
-                    <div class="card-header">
-                        <h3><i class="fa-solid fa-terminal icon-accent"></i> Validation Console & Error Logs</h3>
-                        <div class="console-stats">
-                            <span class="console-stat-item text-success"><i class="fa-solid fa-circle-check"></i>
-                                Files Passed: <strong id="val-passed-count">0</strong></span>
-                            <span class="console-stat-item text-warning"><i
-                                    class="fa-solid fa-triangle-exclamation"></i> Output Issues: <strong
-                                    id="val-issue-count">0</strong></span>
-                            <span class="console-stat-item text-danger"><i class="fa-solid fa-circle-xmark"></i> Files
-                                Error: <strong id="val-err-count">0</strong></span>
-                        </div>
-                    </div>
-                    <div class="console-body" id="validation-console">
-                        <div class="console-placeholder">
-                            <i class="fa-solid fa-info-circle"></i>
-                            <p>Upload Excel files — structural validation and output verification (quotes / pipe
-                                counts) run automatically.</p>
                         </div>
                     </div>
                 </div>
