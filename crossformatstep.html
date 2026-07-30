@@ -486,10 +486,16 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            background: transparent;
-            border: none;
-            padding: 0;
+            background: var(--primary-light);
+            border: 1px solid var(--primary);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
             cursor: pointer;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .deploy-steps-toggle:hover {
+            background: rgba(99, 102, 241, 0.25);
         }
 
         .deploy-steps-toggle h4 {
@@ -497,11 +503,21 @@
             font-size: 13px;
             font-weight: 600;
             color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .deploy-steps-toggle h4::before {
+            content: '\f059';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: var(--primary);
         }
 
         .deploy-steps-toggle i {
-            font-size: 11px;
-            color: var(--text-muted);
+            font-size: 12px;
+            color: var(--primary);
             transition: transform var(--transition-speed) ease;
         }
 
@@ -971,7 +987,7 @@
    CODE EDITOR / RESULT PREVIEW
    ========================================================================== */
         .panel-result {
-            height: 100%;
+            align-self: start;
         }
 
         .preview-wrapper {
@@ -1819,7 +1835,7 @@
                             <div class="deploy-steps">
                                 <button class="deploy-steps-toggle" id="btn-toggle-deploy-steps"
                                     aria-expanded="false">
-                                    <h4>วิธีใช้งาน</h4>
+                                    <h4>ดูวิธีใช้งาน (4 ขั้นตอน)</h4>
                                     <i class="fa-solid fa-chevron-down"></i>
                                 </button>
                                 <ol id="deploy-steps-list" hidden>
