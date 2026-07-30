@@ -105,19 +105,62 @@
             background: rgba(10, 15, 30, 0.8);
             border-right: 1px solid var(--border-color);
             backdrop-filter: var(--glass-blur);
-            padding: 24px 16px;
+            padding: 20px 16px;
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
+            transition: width var(--transition-speed) ease, padding var(--transition-speed) ease;
+        }
+
+        .sidebar.collapsed {
+            width: 68px;
+            padding: 20px 10px;
+        }
+
+        .sidebar.collapsed .brand {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .logo-icon,
+        .sidebar.collapsed .brand-text,
+        .sidebar.collapsed .nav-item span,
+        .sidebar.collapsed .theme-info span {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-item,
+        .sidebar.collapsed .theme-info {
+            justify-content: center;
+        }
+
+        .sidebar-toggle {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 15px;
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .sidebar-toggle:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.06);
         }
 
         .brand {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 8px 8px 32px 8px;
+            padding: 8px 8px 24px 8px;
             border-bottom: 1px solid var(--border-color);
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .logo-icon {
@@ -208,12 +251,12 @@
    ========================================================================== */
         .main-content {
             flex-grow: 1;
-            padding: 32px 40px;
+            padding: 20px 32px;
             overflow-y: auto;
             max-height: 100vh;
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 12px;
         }
 
         .workspace-header {
@@ -221,19 +264,19 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 20px;
+            padding-bottom: 10px;
         }
 
         .header-title h2 {
             font-family: var(--font-heading);
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 600;
             color: #ffffff;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .header-title p {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-muted);
         }
 
@@ -341,7 +384,7 @@
         }
 
         .card-header {
-            padding: 18px 24px;
+            padding: 12px 20px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
@@ -370,7 +413,7 @@
         }
 
         .card-body {
-            padding: 24px;
+            padding: 20px;
         }
 
         .badge {
@@ -391,24 +434,32 @@
         .deploy-body {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 10px;
+            padding: 16px 20px;
         }
 
         .deploy-desc {
-            font-size: 13px;
+            font-size: 12.5px;
             color: var(--text-muted);
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         .deploy-columns {
             display: grid;
-            grid-template-columns: 1fr 1.3fr;
+            grid-template-columns: 0.7fr 1.6fr;
             gap: 24px;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 800px) {
             .deploy-columns {
                 grid-template-columns: 1fr;
+            }
+
+            .deploy-steps {
+                border-left: none !important;
+                padding-left: 0 !important;
+                border-top: 1px solid var(--border-color);
+                padding-top: 14px;
             }
         }
 
@@ -416,11 +467,7 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 12px;
-        }
-
-        .deploy-actions .btn-primary {
-            width: 100%;
+            gap: 10px;
         }
 
         .deploy-actions:disabled,
@@ -429,29 +476,59 @@
             color: var(--text-muted);
         }
 
-        .deploy-steps h4 {
+        .deploy-steps {
+            border-left: 1px solid var(--border-color);
+            padding-left: 24px;
+        }
+
+        .deploy-steps-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            background: transparent;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+
+        .deploy-steps-toggle h4 {
             font-family: var(--font-heading);
             font-size: 13px;
             font-weight: 600;
             color: var(--text-main);
-            margin-bottom: 10px;
+        }
+
+        .deploy-steps-toggle i {
+            font-size: 11px;
+            color: var(--text-muted);
+            transition: transform var(--transition-speed) ease;
+        }
+
+        .deploy-steps-toggle[aria-expanded="true"] i {
+            transform: rotate(180deg);
         }
 
         .deploy-steps ol {
             list-style: none;
             counter-reset: deploy-step;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 20px;
+            margin-top: 12px;
+        }
+
+        .deploy-steps ol[hidden] {
+            display: none;
         }
 
         .deploy-steps li {
             counter-increment: deploy-step;
             position: relative;
-            padding-left: 28px;
-            font-size: 13px;
+            padding-left: 26px;
+            font-size: 12.5px;
             color: var(--text-muted);
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         .deploy-steps li::before {
@@ -485,10 +562,10 @@
             display: flex;
             align-items: flex-start;
             gap: 10px;
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-radius: var(--radius-sm);
-            font-size: 12.5px;
-            line-height: 1.6;
+            font-size: 12px;
+            line-height: 1.5;
         }
 
         .deploy-note-warning {
@@ -505,8 +582,8 @@
    DRAG-AND-DROP FILE UPLOAD ZONE
    ========================================================================== */
         .drop-zone {
-            margin: 24px;
-            padding: 40px 24px;
+            margin: 16px;
+            padding: 16px 20px;
             border: 2px dashed rgba(255, 255, 255, 0.15);
             border-radius: var(--radius-md);
             display: flex;
@@ -526,9 +603,9 @@
         }
 
         .drop-icon {
-            font-size: 40px;
+            font-size: 24px;
             color: var(--text-muted);
-            margin-bottom: 16px;
+            margin-bottom: 6px;
             transition: transform var(--transition-speed) ease;
         }
 
@@ -676,9 +753,9 @@
    METADATA CONFIGURATION PANEL (DATE & PARTNER ID)
    ========================================================================== */
         .metadata-config-zone {
-            padding: 0 24px 20px 24px;
+            padding: 0 16px 10px 16px;
             border-bottom: 1px solid var(--border-color);
-            margin-bottom: 16px;
+            margin-bottom: 8px;
         }
 
         .form-row {
@@ -739,10 +816,10 @@
    FILE LIST COMPONENT
    ========================================================================== */
         .file-list-container {
-            padding: 0 24px 24px 24px;
+            padding: 0 16px 12px 16px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 6px;
         }
 
         .list-header {
@@ -763,7 +840,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            max-height: 180px;
+            max-height: 90px;
             overflow-y: auto;
             padding-right: 4px;
         }
@@ -899,7 +976,7 @@
 
         .preview-wrapper {
             flex-grow: 1;
-            margin: 24px;
+            margin: 16px;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
             overflow: hidden;
@@ -911,11 +988,17 @@
         .preview-header {
             background: rgba(255, 255, 255, 0.02);
             border-bottom: 1px solid var(--border-color);
-            padding: 10px 16px;
+            padding: 8px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 12px;
+        }
+
+        .preview-header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .preview-filename {
@@ -934,10 +1017,31 @@
             color: var(--text-muted);
         }
 
+        .btn-icon {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            width: 24px;
+            height: 24px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            flex-shrink: 0;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .btn-icon:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
         .code-editor {
             flex-grow: 1;
             width: 100%;
-            min-height: 280px;
+            min-height: 120px;
             background: transparent;
             border: none;
             padding: 16px;
@@ -953,11 +1057,68 @@
             color: rgba(255, 255, 255, 0.15);
         }
 
+        #output-text-area {
+            max-height: 150px;
+        }
+
+        /* ==========================================================================
+   PREVIEW EXPAND MODAL (full-view lightbox for output.txt)
+   ========================================================================== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            width: min(90vw, 1100px);
+            height: min(85vh, 800px);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .modal-header i {
+            color: var(--primary);
+            margin-right: 8px;
+        }
+
+        .modal-box .code-editor {
+            flex-grow: 1;
+            min-height: 0;
+            height: 100%;
+        }
+
         /* ==========================================================================
    CONSOLE CARD & ERROR LOGGING
    ========================================================================== */
         .console-card {
-            min-height: 200px;
+            min-height: 140px;
         }
 
         .console-stats {
@@ -975,8 +1136,8 @@
 
         .console-body {
             background: #030712;
-            padding: 16px;
-            height: 180px;
+            padding: 8px 14px;
+            height: 52px;
             overflow-y: auto;
             font-family: var(--font-mono);
             font-size: 12.5px;
@@ -986,17 +1147,18 @@
 
         .console-placeholder {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
             justify-content: center;
             height: 100%;
             color: var(--text-muted);
             gap: 8px;
             font-family: var(--font-body);
+            font-size: 12.5px;
         }
 
         .console-placeholder i {
-            font-size: 24px;
+            font-size: 14px;
         }
 
         /* Console Log Entries */
@@ -1508,6 +1670,9 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="brand">
+                <button class="sidebar-toggle" id="btn-sidebar-toggle" aria-label="Toggle sidebar" title="Toggle sidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
                 <i class="fa-solid fa-file-excel logo-icon"></i>
                 <div class="brand-text">
                     <h1>Platform</h1>
@@ -1618,7 +1783,12 @@
                         <div class="preview-wrapper">
                             <div class="preview-header">
                                 <span class="preview-filename"><i class="fa-solid fa-file-lines"></i> output.txt</span>
-                                <span class="preview-info" id="preview-lines-count">0 lines generated</span>
+                                <div class="preview-header-right">
+                                    <span class="preview-info" id="preview-lines-count">0 lines generated</span>
+                                    <button class="btn-icon" id="btn-expand-preview" title="Expand full view">
+                                        <i class="fa-solid fa-expand"></i>
+                                    </button>
+                                </div>
                             </div>
                             <textarea id="output-text-area" class="code-editor" readonly
                                 placeholder="The generated pipe-delimited text will appear here..."></textarea>
@@ -1647,8 +1817,12 @@
                             </div>
 
                             <div class="deploy-steps">
-                                <h4>วิธีใช้งาน</h4>
-                                <ol>
+                                <button class="deploy-steps-toggle" id="btn-toggle-deploy-steps"
+                                    aria-expanded="false">
+                                    <h4>วิธีใช้งาน</h4>
+                                    <i class="fa-solid fa-chevron-down"></i>
+                                </button>
+                                <ol id="deploy-steps-list" hidden>
                                     <li>เปิด Terminal ไปที่โฟลเดอร์ที่ดาวน์โหลดสคริปต์ไว้</li>
                                     <li><code>chmod +x deploy_sftp_*.sh && ./deploy_sftp_*.sh</code> — โหมดทดสอบ
                                         (dry-run) ปลอดภัย วางไฟล์ไว้ที่ bastion เท่านั้น ไม่แตะ KBank</li>
@@ -1760,6 +1934,19 @@
     <div id="toast" class="toast hidden">
         <i class="fa-solid fa-info-circle toast-icon"></i>
         <span class="toast-message">Message goes here</span>
+    </div>
+
+    <!-- Output Preview — Full-view Modal -->
+    <div class="modal-overlay" id="preview-modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span><i class="fa-solid fa-file-lines"></i>output.txt — full view</span>
+                <button class="btn-icon" id="btn-close-preview-modal" title="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <textarea id="modal-preview-textarea" class="code-editor" readonly></textarea>
+        </div>
     </div>
 
     <!-- Script Import -->
@@ -1913,11 +2100,30 @@
             initSettingsPanel();
             initDragAndDrop();
             initEventListeners();
+            initSidebarToggle();
 
 
 
             updateSystemStatus('System Ready', 'green');
         });
+
+        // ==========================================================================
+        // SIDEBAR COLLAPSE TOGGLE
+        // ==========================================================================
+        function initSidebarToggle() {
+            const sidebar = document.querySelector('.sidebar');
+            const toggleBtn = document.getElementById('btn-sidebar-toggle');
+            if (!sidebar || !toggleBtn) return;
+
+            if (localStorage.getItem('df_sidebar_collapsed') === '1') {
+                sidebar.classList.add('collapsed');
+            }
+
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+                localStorage.setItem('df_sidebar_collapsed', sidebar.classList.contains('collapsed') ? '1' : '0');
+            });
+        }
 
         // ==========================================================================
         // TAB NAVIGATION CONTROL
@@ -2100,6 +2306,38 @@
 
             document.getElementById('btn-generate-deploy-script').addEventListener('click', () => {
                 generateDeployScript();
+            });
+
+            document.getElementById('btn-toggle-deploy-steps').addEventListener('click', () => {
+                const toggleBtn = document.getElementById('btn-toggle-deploy-steps');
+                const stepsList = document.getElementById('deploy-steps-list');
+                const expanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+                toggleBtn.setAttribute('aria-expanded', String(!expanded));
+                if (expanded) {
+                    stepsList.setAttribute('hidden', '');
+                } else {
+                    stepsList.removeAttribute('hidden');
+                }
+            });
+
+            // Output preview — expand to full-view modal
+            const previewModalOverlay = document.getElementById('preview-modal-overlay');
+            document.getElementById('btn-expand-preview').addEventListener('click', () => {
+                document.getElementById('modal-preview-textarea').value = state.outputText || '';
+                previewModalOverlay.classList.add('active');
+            });
+            document.getElementById('btn-close-preview-modal').addEventListener('click', () => {
+                previewModalOverlay.classList.remove('active');
+            });
+            previewModalOverlay.addEventListener('click', (e) => {
+                if (e.target === previewModalOverlay) {
+                    previewModalOverlay.classList.remove('active');
+                }
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    previewModalOverlay.classList.remove('active');
+                }
             });
 
             // Listeners for metadata updates
@@ -2567,7 +2805,7 @@
         // ==========================================================================
         // DEPLOY SCRIPT GENERATION (SFTP hand-off to bastion + partner SFTP)
         // ==========================================================================
-        function generateDeployScript() {
+        async function generateDeployScript() {
             if (!state.outputText) {
                 showToast('No output to generate a deploy script for!', 'error');
                 return;
@@ -2594,6 +2832,26 @@
 
             const scriptText = buildDeployScriptText(partnerId, formattedDate, expectedTxt, expectedLogo);
             const blob = new Blob([scriptText], { type: 'text/x-sh;charset=utf-8' });
+            const successMsg = `สร้าง ${scriptFilename} แล้ว — เปิด Terminal: chmod +x ${scriptFilename} && ./${scriptFilename} (ค่าเริ่มต้นเป็น dry-run ปลอดภัย ไม่แตะ prod)`;
+
+            // Attempt 1: native "Save As" dialog so the user can pick the folder
+            // themselves, same pattern as exportTextFile's showSaveFilePicker path.
+            if (window.showSaveFilePicker) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: scriptFilename,
+                        types: [{ description: 'Shell script', accept: { 'text/x-sh': ['.sh'] } }]
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                    showToast(successMsg, 'success');
+                    return;
+                } catch (err) {
+                    if (err && err.name === 'AbortError') return;
+                    // Otherwise fall through to the <a download> fallback below.
+                }
+            }
 
             try {
                 const url = URL.createObjectURL(blob);
@@ -2604,7 +2862,7 @@
                 a.click();
                 document.body.removeChild(a);
                 setTimeout(() => URL.revokeObjectURL(url), 60000);
-                showToast(`สร้าง ${scriptFilename} แล้ว — เปิด Terminal: chmod +x ${scriptFilename} && ./${scriptFilename} (ค่าเริ่มต้นเป็น dry-run ปลอดภัย ไม่แตะ prod)`, 'success');
+                showToast(successMsg, 'success');
             } catch (err) {
                 showToast(`Failed to generate script: ${err.message}`, 'error');
             }
