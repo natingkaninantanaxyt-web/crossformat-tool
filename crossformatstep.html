@@ -1623,14 +1623,22 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             color: var(--text-muted);
-            width: 32px;
-            height: 32px;
+            width: 22px;
+            height: 22px;
+            font-size: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all var(--transition-speed) ease;
             flex-shrink: 0;
+        }
+
+        .step-cmd-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 4px 0;
         }
 
         .btn-copy-step-cmd:hover {
@@ -1865,14 +1873,14 @@
                     </div>
                     <div class="card-body deploy-body">
                         <p class="deploy-desc">
-                            สร้างสคริปต์ <code>.sh</code> ที่ scp ไฟล์ขึ้น bastion แล้ว sftp เข้าโฟลเดอร์ของ KBank —
-                            สคริปต์รันบนเครื่องคุณเอง (ต้องมี gcloud CLI และ login ไว้แล้ว) ไม่ใช่บนเว็บนี้
+                            สร้างไฟล์ <code>.command</code> ที่ scp ไฟล์ขึ้น bastion แล้ว sftp เข้าโฟลเดอร์ของ KBank
+                            — ดับเบิลคลิกแล้วรันได้เลย (ต้องมี gcloud CLI และ login ไว้แล้วบนเครื่องนั้น) ไม่ใช่บนเว็บนี้
                         </p>
 
                         <div class="deploy-columns">
                             <div class="deploy-actions">
                                 <button class="btn-primary" id="btn-generate-deploy-script" disabled>
-                                    <i class="fa-solid fa-terminal"></i> Generate Deploy Script (.sh)
+                                    <i class="fa-solid fa-terminal"></i> Generate Deploy Script (.command)
                                 </button>
                                 <span class="deploy-hint">ต้องกด Export ให้ผ่านก่อน ปุ่มนี้ถึงจะกดได้</span>
                             </div>
@@ -1884,22 +1892,43 @@
                                     <i class="fa-solid fa-chevron-down"></i>
                                 </button>
                                 <ol id="deploy-steps-list" hidden>
-                                    <li>เปิด Terminal ไปที่โฟลเดอร์ที่ดาวน์โหลดสคริปต์ไว้</li>
-                                    <li><code>chmod +x deploy_sftp_*.sh && ./deploy_sftp_*.sh</code> — โหมดทดสอบ
-                                        (dry-run) ปลอดภัย วางไฟล์ไว้ที่ bastion เท่านั้น ไม่แตะ KBank</li>
+                                    <li><strong>ดับเบิลคลิก</strong>ไฟล์ที่ดาวน์โหลดมา — Terminal จะเปิดเองแล้วเริ่มรัน
+                                        ให้ทันที (ถ้า macOS เด้ง popup เตือนว่าไฟล์มาจากอินเทอร์เน็ต ให้กด "Open"
+                                        ยืนยัน)</li>
                                     <li>เลือกไฟล์ <code>.txt</code> จากหน้าต่างที่เด้งขึ้นมา (โลโก้ดาวน์โหลดจาก
-                                        GitHub ให้อัตโนมัติ)</li>
-                                    <li>พร้อมส่งเข้า KBank จริง ให้รันอีกครั้งด้วย <code>./deploy_sftp_*.sh
-                                            --go-live</code> แล้วพิมพ์ <code>PROD</code> ยืนยัน จากนั้นกรอก
-                                        password SFTP ของคุณเอง (ไม่ถูกบันทึกไว้ที่ไหน แค่ใช้ตอนรันครั้งนั้น)</li>
+                                        GitHub ให้อัตโนมัติ) — ระบบจะวางไฟล์จริงไว้ที่ bastion (ถังกลาง) ให้เสร็จ
+                                        แล้วหยุดรอ</li>
+                                    <li>ถ้าแค่ต้องการเช็คว่าไฟล์ไปถึงถังกลางถูกไหม กด Enter เฉย ๆ ได้เลย จบตรงนี้
+                                        (ยังไม่แตะ KBank)</li>
+                                    <li>
+                                        พร้อมส่งเข้า KBank จริง ให้พิมพ์
+                                        <div class="step-cmd-row">
+                                            <code id="cmd-step-4">GO-LIVE</code>
+                                            <button class="btn-copy-step-cmd" data-target="cmd-step-4"
+                                                title="คัดลอก">
+                                                <i class="fa-solid fa-copy"></i>
+                                            </button>
+                                        </div>
+                                        ตอนที่ถาม แล้วพิมพ์
+                                        <div class="step-cmd-row">
+                                            <code id="cmd-step-4b">PROD</code>
+                                            <button class="btn-copy-step-cmd" data-target="cmd-step-4b"
+                                                title="คัดลอก">
+                                                <i class="fa-solid fa-copy"></i>
+                                            </button>
+                                        </div>
+                                        ยืนยันอีกที จากนั้นกรอก password SFTP ของคุณเอง (ไม่ถูกบันทึกไว้ที่ไหน แค่ใช้
+                                        ตอนรันครั้งนั้น)
+                                    </li>
                                 </ol>
                             </div>
                         </div>
 
                         <div class="deploy-note deploy-note-warning">
                             <i class="fa-solid fa-triangle-exclamation"></i>
-                            <span>ค่าเริ่มต้นของสคริปต์คือ dry-run เสมอ ต้องใส่ <code>--go-live</code> และพิมพ์
-                                <code>PROD</code> เองเท่านั้น ถึงจะส่งไฟล์เข้า KBank จริง</span>
+                            <span>สคริปต์จะวางไฟล์จริงไว้ที่ bastion (ถังกลาง) ก่อนเสมอ แล้วจะถามให้พิมพ์
+                                <code>GO-LIVE</code> และพิมพ์ <code>PROD</code> ยืนยันเองสองชั้น ถึงจะส่งไฟล์เข้า
+                                KBank จริง — ไม่พิมพ์ก็แค่กด Enter จบได้เลย ไม่มีอะไรเสียหาย</span>
                         </div>
                     </div>
                 </div>
@@ -2866,11 +2895,11 @@
 
             const expectedTxt = `register_qrapiv2_${partnerId}_${formattedDate}.txt`;
             const expectedLogo = `${partnerId}-cjx-logo.jpg`;
-            const scriptFilename = `deploy_sftp_${partnerId}_${formattedDate}.sh`;
+            const scriptFilename = `deploy_sftp_${partnerId}_${formattedDate}.command`;
 
             const scriptText = buildDeployScriptText(partnerId, formattedDate, expectedTxt, expectedLogo);
             const blob = new Blob([scriptText], { type: 'text/x-sh;charset=utf-8' });
-            const successMsg = `สร้าง ${scriptFilename} แล้ว — เปิด Terminal: chmod +x ${scriptFilename} && ./${scriptFilename} (ค่าเริ่มต้นเป็น dry-run ปลอดภัย ไม่แตะ prod)`;
+            const successMsg = `สร้าง ${scriptFilename} แล้ว — ดับเบิลคลิกไฟล์นี้เพื่อรัน (Terminal จะเปิดเองอัตโนมัติ) ค่าเริ่มต้นจะวางไฟล์ที่ bastion เท่านั้น ยังไม่แตะ prod`;
 
             // Attempt 1: native "Save As" dialog so the user can pick the folder
             // themselves, same pattern as exportTextFile's showSaveFilePicker path.
@@ -2878,7 +2907,7 @@
                 try {
                     const handle = await window.showSaveFilePicker({
                         suggestedName: scriptFilename,
-                        types: [{ description: 'Shell script', accept: { 'text/x-sh': ['.sh'] } }]
+                        types: [{ description: 'macOS Terminal script', accept: { 'text/x-sh': ['.command'] } }]
                     });
                     const writable = await handle.createWritable();
                     await writable.write(blob);
@@ -2913,9 +2942,10 @@
             const lines = [
                 '#!/bin/bash',
                 '# ==============================================================================',
-                `# deploy_sftp_${partnerId}_${formattedDate}.sh — generated by CrossFormat Tool`,
+                `# deploy_sftp_${partnerId}_${formattedDate}.command — generated by CrossFormat Tool`,
+                '# ดับเบิลคลิกไฟล์นี้เพื่อรัน (Terminal จะเปิดเองอัตโนมัติ) หรือรันจาก Terminal ก็ได้เหมือนกัน',
                 '# ทำงาน 2 checkpoint: [1] scp ไฟล์ local -> bastion (ไม่แตะ prod)  [2] sftp เข้า prod จริง',
-                '# ค่าเริ่มต้น = DRY-RUN (ทำแค่ checkpoint 1) ต้องรันด้วย --go-live ถึงจะทำ checkpoint 2 และต้องพิมพ์ PROD ยืนยันอีกชั้น',
+                '# checkpoint 1 ทำให้เสมอ แล้วค่อยถามว่าจะทำ checkpoint 2 ต่อไหม (พิมพ์ GO-LIVE ยืนยัน + พิมพ์ PROD ยืนยันอีกชั้น)',
                 '# ==============================================================================',
                 'set -euo pipefail',
                 '',
@@ -2934,18 +2964,8 @@
                 `EXPECTED_TXT="${expectedTxt}"`,
                 `EXPECTED_LOGO="${expectedLogo}"`,
                 '',
-                'GO_LIVE=false',
-                'if [[ "${1:-}" == "--go-live" ]]; then',
-                '    GO_LIVE=true',
-                'fi',
-                '',
                 'echo "=================================================================="',
-                'if [[ "$GO_LIVE" == true ]]; then',
-                '    echo "⚠️  โหมด PROD จริง — ถ้ายืนยันครบจะส่งไฟล์เข้า SFTP ปลายทางจริงที่ ${SFTP_HOST}"',
-                'else',
-                '    echo "🧪 โหมด DRY-RUN — จะหยุดหลัง scp ขึ้น bastion เท่านั้น ไม่แตะ prod SFTP"',
-                '    echo "   (ต้องการยิงจริง ให้รัน: ./$(basename "$0") --go-live)"',
-                'fi',
+                'echo "📦 ขั้นที่ 1: วางไฟล์ที่ bastion (ถังกลาง) ก่อน — ยังไม่แตะ prod SFTP"',
                 'echo "=================================================================="',
                 'echo',
                 '',
@@ -3021,15 +3041,17 @@
                 'gcloud compute ssh "$BASTION" --tunnel-through-iap --project "$PROJECT" --zone "$ZONE" \\',
                 '    --command="ls -l ${REMOTE_TMP_DIR}/"',
                 '',
-                'if [[ "$GO_LIVE" != true ]]; then',
-                '    echo',
-                '    echo "✅ DRY-RUN เสร็จสิ้น — ไฟล์อยู่ที่ bastion:${REMOTE_TMP_DIR}/ เท่านั้น"',
-                '    echo "   ยังไม่ได้ส่งเข้า prod SFTP (${SFTP_HOST}/${SFTP_REMOTE_DIR})"',
+                'echo',
+                'echo "✅ วางไฟล์ที่ถังกลางเสร็จแล้ว — ไฟล์อยู่ที่ bastion:${REMOTE_TMP_DIR}/ เท่านั้น"',
+                'echo',
+                'read -r -p "ต้องการส่งไฟล์เข้า KBank จริงเลยไหม? พิมพ์ GO-LIVE เพื่อดำเนินการต่อ (หรือกด Enter เพื่อจบแค่นี้): " GO_LIVE_CONFIRM',
+                'if [[ "$GO_LIVE_CONFIRM" != "GO-LIVE" ]]; then',
+                '    echo "จบการทำงาน — ยังไม่ได้ส่งเข้า prod SFTP (${SFTP_HOST}/${SFTP_REMOTE_DIR})"',
                 '    exit 0',
                 'fi',
                 '',
                 '# ------------------------------------------------------------------------------',
-                '# ถึงจุดนี้คือโหมด --go-live เท่านั้น: ต้องพิมพ์ PROD ยืนยันอีกชั้น แล้วขอ password ก่อนยิงเข้า prod จริง',
+                '# ถึงจุดนี้คือยืนยัน GO-LIVE แล้ว: ต้องพิมพ์ PROD ยืนยันอีกชั้น แล้วขอ password ก่อนยิงเข้า prod จริง',
                 '# ------------------------------------------------------------------------------',
                 'echo',
                 'echo "⚠️  กำลังจะส่งไฟล์เข้า prod SFTP จริงที่ ${SFTP_HOST}/${SFTP_REMOTE_DIR}"',
