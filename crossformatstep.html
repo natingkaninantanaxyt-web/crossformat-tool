@@ -1892,20 +1892,25 @@
                                     <i class="fa-solid fa-chevron-down"></i>
                                 </button>
                                 <ol id="deploy-steps-list" hidden>
-                                    <li>เปิด Terminal ไปที่โฟลเดอร์ที่ดาวน์โหลดสคริปต์ไว้</li>
+                                    <li>เปิด Terminal (ไม่ต้อง cd ไปหาโฟลเดอร์เอง — คำสั่งข้อ 2 จะเด้งหน้าต่างให้เลือกไฟล์แทน
+                                        ไม่ว่าเซฟไว้ที่ไหนก็เลือกได้)</li>
                                     <li>
                                         <div class="step-cmd-row">
-                                            <code id="cmd-step-2">chmod +x deploy_sftp_*.sh &&
-                                                ./deploy_sftp_*.sh</code>
+                                            <code id="cmd-step-2">f="$(osascript -e 'POSIX path of (choose file
+                                                with prompt "เลือกไฟล์ deploy_sftp_*.sh" default location (path to
+                                                downloads folder))')" && chmod +x "$f" && "$f"</code>
                                             <button class="btn-copy-step-cmd" data-target="cmd-step-2"
                                                 title="คัดลอกคำสั่ง">
                                                 <i class="fa-solid fa-copy"></i>
                                             </button>
                                         </div>
-                                        — วางไฟล์จริงที่ bastion (ถังกลาง) ให้เสร็จก่อน แล้วหยุดรอ
+                                        — คัดลอกไปวางใน Terminal แล้วกด Enter จะเด้งหน้าต่างให้เลือกไฟล์
+                                        <code>deploy_sftp_*.sh</code> ที่ดาวน์โหลดไว้ พอเลือกแล้วจะรันให้อัตโนมัติ
+                                        (คำสั่งนี้ใช้ซ้ำได้ทุกครั้ง ไม่ต้องแก้อะไร)
                                     </li>
-                                    <li>เลือกไฟล์ <code>.txt</code> จากหน้าต่างที่เด้งขึ้นมา (โลโก้ดาวน์โหลดจาก
-                                        GitHub ให้อัตโนมัติ)</li>
+                                    <li>เลือกไฟล์ <code>.txt</code> จากหน้าต่างที่เด้งขึ้นมาอีกครั้ง (โลโก้ดาวน์โหลดจาก
+                                        GitHub ให้อัตโนมัติ) — ระบบจะวางไฟล์จริงที่ bastion (ถังกลาง) ให้เสร็จก่อน
+                                        แล้วหยุดรอ</li>
                                     <li>
                                         ถ้าแค่ต้องการเช็คว่าไฟล์ไปถึงถังกลางถูกไหม กด Enter เฉย ๆ ได้เลย จบตรงนี้
                                         (ยังไม่แตะ KBank) พร้อมส่งเข้า KBank จริง ให้พิมพ์
@@ -2434,7 +2439,11 @@
                     const targetId = btn.getAttribute('data-target');
                     const targetEl = document.getElementById(targetId);
                     if (targetEl) {
-                        const text = targetEl.textContent || targetEl.value;
+                        const rawText = targetEl.textContent || targetEl.value;
+                        // The HTML source line-wraps/indents long <code> commands for
+                        // readability, which textContent preserves verbatim — collapse
+                        // that back into a single clean line before copying.
+                        const text = rawText.replace(/\s+/g, ' ').trim();
                         navigator.clipboard.writeText(text)
                             .then(() => showToast('คัดลอกไปยังคลิปบอร์ดแล้ว!', 'success'))
                             .catch(() => showToast('คัดลอกล้มเหลว', 'error'));
