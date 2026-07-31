@@ -1873,7 +1873,7 @@
                     </div>
                     <div class="card-body deploy-body">
                         <p class="deploy-desc">
-                            สร้างสคริปต์ <code>.sh</code> ที่ scp ไฟล์ขึ้น bastion แล้ว sftp เข้าโฟลเดอร์ของ KBank —
+                            สร้างสคริปต์ <code>.sh</code> ที่ scp ไฟล์ขึ้น bastion แล้ว sftp เข้าโฟลเดอร์ของ CJMART_KPAY_REGISAPI_INBOUND —
                             สคริปต์รันบนเครื่องคุณเอง (ต้องมี gcloud CLI และ login ไว้แล้ว) ไม่ใช่บนเว็บนี้
                         </p>
 
@@ -1913,7 +1913,7 @@
                                         แล้วหยุดรอ</li>
                                     <li>
                                         ถ้าแค่ต้องการเช็คว่าไฟล์ไปถึงถังกลางถูกไหม กด Enter เฉย ๆ ได้เลย จบตรงนี้
-                                        (ยังไม่แตะ KBank) พร้อมส่งเข้า KBank จริง ให้พิมพ์
+                                        (ยังไม่แตะ CJMART_KPAY_REGISAPI_INBOUND) พร้อมส่งเข้า CJMART_KPAY_REGISAPI_INBOUND จริง ให้พิมพ์
                                         <div class="step-cmd-row">
                                             <code id="cmd-step-4">GO-LIVE</code>
                                             <button class="btn-copy-step-cmd" data-target="cmd-step-4"
@@ -1940,7 +1940,7 @@
                             <i class="fa-solid fa-triangle-exclamation"></i>
                             <span>สคริปต์จะวางไฟล์จริงไว้ที่ bastion (ถังกลาง) ก่อนเสมอ แล้วจะถามให้พิมพ์
                                 <code>GO-LIVE</code> และพิมพ์ <code>PROD</code> ยืนยันเองสองชั้น ถึงจะส่งไฟล์เข้า
-                                KBank จริง — ไม่พิมพ์ก็แค่กด Enter จบได้เลย ไม่มีอะไรเสียหาย</span>
+                                CJMART_KPAY_REGISAPI_INBOUND จริง — ไม่พิมพ์ก็แค่กด Enter จบได้เลย ไม่มีอะไรเสียหาย</span>
                         </div>
                     </div>
                 </div>
@@ -3060,7 +3060,7 @@
                 'echo',
                 'echo "✅ วางไฟล์ที่ถังกลางเสร็จแล้ว — ไฟล์อยู่ที่ bastion:${REMOTE_TMP_DIR}/ เท่านั้น"',
                 'echo',
-                'read -r -p "ต้องการส่งไฟล์เข้า KBank จริงเลยไหม? พิมพ์ GO-LIVE เพื่อดำเนินการต่อ (หรือกด Enter เพื่อจบแค่นี้): " GO_LIVE_CONFIRM',
+                'read -r -p "ต้องการส่งไฟล์เข้า CJMART_KPAY_REGISAPI_INBOUND จริงเลยไหม? พิมพ์ GO-LIVE เพื่อดำเนินการต่อ (หรือกด Enter เพื่อจบแค่นี้): " GO_LIVE_CONFIRM',
                 'if [[ "$GO_LIVE_CONFIRM" != "GO-LIVE" ]]; then',
                 '    echo "จบการทำงาน — ยังไม่ได้ส่งเข้า prod SFTP (${SFTP_HOST}/${SFTP_REMOTE_DIR})"',
                 '    exit 0',
