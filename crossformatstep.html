@@ -1873,14 +1873,14 @@
                     </div>
                     <div class="card-body deploy-body">
                         <p class="deploy-desc">
-                            สร้างไฟล์ <code>.command</code> ที่ scp ไฟล์ขึ้น bastion แล้ว sftp เข้าโฟลเดอร์ของ KBank
-                            — ดับเบิลคลิกแล้วรันได้เลย (ต้องมี gcloud CLI และ login ไว้แล้วบนเครื่องนั้น) ไม่ใช่บนเว็บนี้
+                            สร้างสคริปต์ <code>.sh</code> ที่ scp ไฟล์ขึ้น bastion แล้ว sftp เข้าโฟลเดอร์ของ KBank —
+                            สคริปต์รันบนเครื่องคุณเอง (ต้องมี gcloud CLI และ login ไว้แล้ว) ไม่ใช่บนเว็บนี้
                         </p>
 
                         <div class="deploy-columns">
                             <div class="deploy-actions">
                                 <button class="btn-primary" id="btn-generate-deploy-script" disabled>
-                                    <i class="fa-solid fa-terminal"></i> Generate Deploy Script (.command)
+                                    <i class="fa-solid fa-terminal"></i> Generate Deploy Script (.sh)
                                 </button>
                                 <span class="deploy-hint">ต้องกด Export ให้ผ่านก่อน ปุ่มนี้ถึงจะกดได้</span>
                             </div>
@@ -1892,16 +1892,23 @@
                                     <i class="fa-solid fa-chevron-down"></i>
                                 </button>
                                 <ol id="deploy-steps-list" hidden>
-                                    <li><strong>ดับเบิลคลิก</strong>ไฟล์ที่ดาวน์โหลดมา — Terminal จะเปิดเองแล้วเริ่มรัน
-                                        ให้ทันที (ถ้า macOS เด้ง popup เตือนว่าไฟล์มาจากอินเทอร์เน็ต ให้กด "Open"
-                                        ยืนยัน)</li>
-                                    <li>เลือกไฟล์ <code>.txt</code> จากหน้าต่างที่เด้งขึ้นมา (โลโก้ดาวน์โหลดจาก
-                                        GitHub ให้อัตโนมัติ) — ระบบจะวางไฟล์จริงไว้ที่ bastion (ถังกลาง) ให้เสร็จ
-                                        แล้วหยุดรอ</li>
-                                    <li>ถ้าแค่ต้องการเช็คว่าไฟล์ไปถึงถังกลางถูกไหม กด Enter เฉย ๆ ได้เลย จบตรงนี้
-                                        (ยังไม่แตะ KBank)</li>
+                                    <li>เปิด Terminal ไปที่โฟลเดอร์ที่ดาวน์โหลดสคริปต์ไว้</li>
                                     <li>
-                                        พร้อมส่งเข้า KBank จริง ให้พิมพ์
+                                        <div class="step-cmd-row">
+                                            <code id="cmd-step-2">chmod +x deploy_sftp_*.sh &&
+                                                ./deploy_sftp_*.sh</code>
+                                            <button class="btn-copy-step-cmd" data-target="cmd-step-2"
+                                                title="คัดลอกคำสั่ง">
+                                                <i class="fa-solid fa-copy"></i>
+                                            </button>
+                                        </div>
+                                        — วางไฟล์จริงที่ bastion (ถังกลาง) ให้เสร็จก่อน แล้วหยุดรอ
+                                    </li>
+                                    <li>เลือกไฟล์ <code>.txt</code> จากหน้าต่างที่เด้งขึ้นมา (โลโก้ดาวน์โหลดจาก
+                                        GitHub ให้อัตโนมัติ)</li>
+                                    <li>
+                                        ถ้าแค่ต้องการเช็คว่าไฟล์ไปถึงถังกลางถูกไหม กด Enter เฉย ๆ ได้เลย จบตรงนี้
+                                        (ยังไม่แตะ KBank) พร้อมส่งเข้า KBank จริง ให้พิมพ์
                                         <div class="step-cmd-row">
                                             <code id="cmd-step-4">GO-LIVE</code>
                                             <button class="btn-copy-step-cmd" data-target="cmd-step-4"
@@ -2895,11 +2902,11 @@
 
             const expectedTxt = `register_qrapiv2_${partnerId}_${formattedDate}.txt`;
             const expectedLogo = `${partnerId}-cjx-logo.jpg`;
-            const scriptFilename = `deploy_sftp_${partnerId}_${formattedDate}.command`;
+            const scriptFilename = `deploy_sftp_${partnerId}_${formattedDate}.sh`;
 
             const scriptText = buildDeployScriptText(partnerId, formattedDate, expectedTxt, expectedLogo);
             const blob = new Blob([scriptText], { type: 'text/x-sh;charset=utf-8' });
-            const successMsg = `สร้าง ${scriptFilename} แล้ว — ดับเบิลคลิกไฟล์นี้เพื่อรัน (Terminal จะเปิดเองอัตโนมัติ) ค่าเริ่มต้นจะวางไฟล์ที่ bastion เท่านั้น ยังไม่แตะ prod`;
+            const successMsg = `สร้าง ${scriptFilename} แล้ว — เปิด Terminal: chmod +x ${scriptFilename} && ./${scriptFilename} (ค่าเริ่มต้นจะวางไฟล์ที่ bastion เท่านั้น ยังไม่แตะ prod)`;
 
             // Attempt 1: native "Save As" dialog so the user can pick the folder
             // themselves, same pattern as exportTextFile's showSaveFilePicker path.
@@ -2907,7 +2914,7 @@
                 try {
                     const handle = await window.showSaveFilePicker({
                         suggestedName: scriptFilename,
-                        types: [{ description: 'macOS Terminal script', accept: { 'text/x-sh': ['.command'] } }]
+                        types: [{ description: 'Shell script', accept: { 'text/x-sh': ['.sh'] } }]
                     });
                     const writable = await handle.createWritable();
                     await writable.write(blob);
@@ -2942,8 +2949,7 @@
             const lines = [
                 '#!/bin/bash',
                 '# ==============================================================================',
-                `# deploy_sftp_${partnerId}_${formattedDate}.command — generated by CrossFormat Tool`,
-                '# ดับเบิลคลิกไฟล์นี้เพื่อรัน (Terminal จะเปิดเองอัตโนมัติ) หรือรันจาก Terminal ก็ได้เหมือนกัน',
+                `# deploy_sftp_${partnerId}_${formattedDate}.sh — generated by CrossFormat Tool`,
                 '# ทำงาน 2 checkpoint: [1] scp ไฟล์ local -> bastion (ไม่แตะ prod)  [2] sftp เข้า prod จริง',
                 '# checkpoint 1 ทำให้เสมอ แล้วค่อยถามว่าจะทำ checkpoint 2 ต่อไหม (พิมพ์ GO-LIVE ยืนยัน + พิมพ์ PROD ยืนยันอีกชั้น)',
                 '# ==============================================================================',
