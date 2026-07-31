@@ -1929,8 +1929,8 @@
                                                 <i class="fa-solid fa-copy"></i>
                                             </button>
                                         </div>
-                                        ยืนยันอีกที จากนั้นกรอก password SFTP ของคุณเอง (ไม่ถูกบันทึกไว้ที่ไหน แค่ใช้
-                                        ตอนรันครั้งนั้น)
+                                        ยืนยันอีกที จากนั้น <code>sftp</code> จะถาม password เอง — พิมพ์ตรงนั้นได้เลย
+                                        (ไม่ผ่านสคริปต์เลย ไม่ถูกเก็บที่ไหนทั้งนั้น)
                                     </li>
                                 </ol>
                             </div>
@@ -3077,13 +3077,10 @@
                 'fi',
                 '',
                 'echo',
-                'read -r -s -p "กรอก password สำหรับ SFTP user ${SFTP_USER}: " SFTP_PASS',
-                'echo',
+                'echo "   sftp จะถาม password ของ ${SFTP_USER} เอง — พิมพ์ตรงนั้นได้เลย (ไม่ได้ถูกส่งผ่านสคริปต์นี้เลย)"',
                 '',
                 'REMOTE_CMD=$(cat <<EOF',
-                'set -e',
-                "export SSHPASS='${SFTP_PASS}'",
-                "sshpass -e sftp -oPort=${SFTP_PORT} -oStrictHostKeyChecking=no ${SFTP_USER}@${SFTP_HOST} <<'SFTP_BATCH'",
+                "sftp -oPort=${SFTP_PORT} -oStrictHostKeyChecking=no ${SFTP_USER}@${SFTP_HOST} <<'SFTP_BATCH'",
                 'cd ${SFTP_REMOTE_DIR}',
                 'put ${REMOTE_TMP_DIR}/${TXT_BASENAME}',
                 'put ${REMOTE_TMP_DIR}/${LOGO_BASENAME}',
@@ -3096,7 +3093,7 @@
                 '',
                 'echo "== [2/2] ส่งไฟล์เข้า prod SFTP: ${SFTP_HOST}/${SFTP_REMOTE_DIR}"',
                 'gcloud compute ssh "$BASTION" --tunnel-through-iap --project "$PROJECT" --zone "$ZONE" \\',
-                '    --command="$REMOTE_CMD"',
+                '    --command="$REMOTE_CMD" -- -t',
                 '',
                 'echo "✅ เสร็จสิ้น: ส่งไฟล์เข้า prod SFTP แล้ว"',
             ];
