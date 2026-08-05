@@ -1,13 +1,32 @@
-# CrossFormat Tool
+# Front Automation Hub
+
+เว็บแอปที่รวม automation ของทีมไว้ที่เดียว — เข้าเว็บเดียวแล้วเลือกใช้งาน automation ได้หลายตัว
+ไม่ต้องจำลิงก์แยกทีละเครื่องมือ
+
+- **ใช้งานจริง (แชร์ให้ทีมได้เลย):** https://natingkaninantanaxyt-web.github.io/front-automation-hub/
+- **หน้าแรก (Hub):** [`index.html`](index.html) — การ์ดลิงก์ไปแต่ละ automation
+- **ดีไซน์กลาง:** [`shared/theme.css`](shared/theme.css) — สี/ฟอนต์/สไตล์พื้นฐานที่ใช้ร่วมกันทุกโมดูล ให้ automation ใหม่ที่เพิ่มเข้ามาหน้าตาสอดคล้องกันโดยอัตโนมัติ
+
+## โมดูลที่มีอยู่
+
+### CrossFormat
 
 เครื่องมือแปลงไฟล์ Excel ทะเบียนร้านค้า ให้เป็นไฟล์ `.txt` แบบ pipe-delimited สำหรับขั้นตอน onboarding
-QR API ของพาร์ตเนอร์ พร้อมตรวจสอบโครงสร้างไฟล์ให้อัตโนมัติ
+QR API ของพาร์ตเนอร์ พร้อมตรวจสอบโครงสร้างไฟล์ให้อัตโนมัติ และสร้างสคริปต์ deploy ขึ้น SFTP
 
-- **ใช้งานจริง (แชร์ให้ทีมได้เลย):** https://natingkaninantanaxyt-web.github.io/crossformat-tool/
-- **ไฟล์โค้ด:** [`crossformatstep.html`](crossformatstep.html) — ไฟล์เดียวจบ ไม่มี build/server (ดูรายละเอียดใน [CLAUDE.md](CLAUDE.md))
+- **ใช้งานจริง:** https://natingkaninantanaxyt-web.github.io/front-automation-hub/crossformat/
+- **ไฟล์โค้ด:** [`crossformat/index.html`](crossformat/index.html) — ไฟล์เดียวจบ ไม่มี build/server (ดูรายละเอียดใน [crossformat/README.md](crossformat/README.md))
+
+automation ตัวใหม่ของทีมจะได้โฟลเดอร์ของตัวเองที่ root ของ repo นี้ (เช่น `/crossformat/`) แล้วเพิ่มการ์ดลิงก์ในหน้า Hub (`index.html`)
+
+---
 
 ด้านล่างนี้คือคู่มือแบบละเอียดที่ใช้ตั้งค่า repo นี้ตั้งแต่ต้นจนขึ้นเว็บได้จริง เก็บไว้เผื่อใครในทีมต้องทำซ้ำ
 กับโปรเจกต์อื่น หรืออยากเข้าใจว่าเว็บนี้รันมายังไง
+
+> **หมายเหตุ:** คู่มือด้านล่างนี้เขียนขึ้นตอนที่ repo ยังชื่อ `crossformat-tool` และมีแค่ไฟล์ `crossformatstep.html`
+> ไฟล์เดียว (ก่อนจะรีแบรนด์เป็น Front Automation Hub) — ตัวอย่างคำสั่ง/ชื่อไฟล์ในคู่มือจึงยังอ้างอิงชื่อเดิมอยู่
+> กลไก git/GitHub ที่สอนยังใช้ได้เหมือนเดิมทุกอย่าง แค่แทนชื่อ repo/ไฟล์ด้วยของจริงปัจจุบัน (ดูลิงก์สรุปท้ายไฟล์นี้)
 
 ---
 
@@ -505,6 +524,8 @@ git push
 
 ## สรุปลิงก์ของโปรเจกต์นี้
 
-- **Repository:** https://github.com/natingkaninantanaxyt-web/crossformat-tool
-- **เว็บใช้งานจริง (แชร์ให้ทีม):** https://natingkaninantanaxyt-web.github.io/crossformat-tool/
-- **ไฟล์ที่ต้องแก้เวลาแก้โค้ด:** `crossformatstep.html` (ไม่ใช่ `index.html` — ไฟล์นั้นเป็นแค่ตัวเปลี่ยนเส้นทาง)
+- **Repository:** https://github.com/natingkaninantanaxyt-web/front-automation-hub
+- **เว็บใช้งานจริง (แชร์ให้ทีม):** https://natingkaninantanaxyt-web.github.io/front-automation-hub/
+- **หน้า Hub (แก้เพื่อเพิ่ม/แก้การ์ด automation):** `index.html`
+- **แก้ CrossFormat:** `crossformat/index.html`
+- **แก้สี/ฟอนต์ที่ใช้ร่วมกันทุกโมดูล:** `shared/theme.css`
