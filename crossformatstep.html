@@ -2729,7 +2729,12 @@
 
         function cleanCellValue(val) {
             if (val === undefined || val === null) return '';
-            return String(val).replace(/'/g, '');
+            return String(val)
+                .replace(/'/g, '')
+                // Normalize "smart" dash characters (en dash –, em dash —, minus
+                // sign −, etc. — commonly introduced by Excel/Word autocorrect) to a
+                // plain ASCII hyphen, since the partner's system rejects rows containing them.
+                .replace(/[\u2010-\u2015\u2212]/g, '-');
         }
 
         function processRow(row, expectedLength) {
