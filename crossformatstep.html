@@ -2665,6 +2665,7 @@
 
             let totalErrors = 0;
             let totalPassed = 0;
+            let totalAutoFixes = 0;
 
             state.uploadedFiles.forEach(file => {
                 file.logs = [];
@@ -2709,6 +2710,7 @@
                 // `rows` in fixDateCorruptedCells — just note it happened here,
                 // no need to block export.
                 if (file.dateFixes && file.dateFixes.length > 0) {
+                    totalAutoFixes += file.dateFixes.length;
                     file.dateFixes.forEach(fx => {
                         file.logs.push(`ℹ️ แถวที่ ${fx.excelRow} คอลัมน์ "${fx.colName}": Excel แปลงค่าเป็นวันที่ (${fx.original}) — ระบบแก้กลับเป็น "${fx.reconstructed}" ให้อัตโนมัติแล้ว`);
                     });
@@ -2718,6 +2720,7 @@
                 // plain hyphen unconditionally by cleanCellValue at output time — this
                 // just surfaces that it happened, same as the date-fix notice above.
                 if (file.dashFixes && file.dashFixes.length > 0) {
+                    totalAutoFixes += file.dashFixes.length;
                     file.dashFixes.forEach(fx => {
                         file.logs.push(`ℹ️ แถวที่ ${fx.excelRow} คอลัมน์ "${fx.colName}": พบอักขระขีดพิเศษ ("${fx.original}") — ระบบแก้เป็นขีด - ปกติ ("${fx.fixed}") ให้อัตโนมัติแล้ว`);
                     });
@@ -2739,7 +2742,7 @@
             state.outputStats = verification;
 
             document.getElementById('val-passed-count').textContent = totalPassed;
-            document.getElementById('val-issue-count').textContent = verification.issues.length;
+            document.getElementById('val-issue-count').textContent = verification.issues.length + totalAutoFixes;
             document.getElementById('val-err-count').textContent = totalErrors;
 
             renderFileList();
