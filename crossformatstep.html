@@ -2488,13 +2488,15 @@
                         const worksheet = workbook.Sheets[firstSheetName];
                         const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', raw: false });
                         const dateFixes = fixDateCorruptedCells(worksheet, rows);
+                        const dashFixes = detectSmartDashCells(rows);
 
                         state.uploadedFiles.push({
                             name: file.name,
                             rows: rows,
                             status: 'passed',
                             logs: [],
-                            dateFixes: dateFixes
+                            dateFixes: dateFixes,
+                            dashFixes: dashFixes
                         });
                     } catch (err) {
                         console.error(err);
@@ -2625,6 +2627,38 @@
             return fixes;
         }
 
+        // Detects "smart" dash characters (en dash, em dash, minus sign, etc. —
+        // commonly introduced by Excel/Word autocorrect) in shop-data cells, purely
+        // for reporting in the Validation Console. cleanCellValue does the actual
+        // replacement unconditionally at output time regardless of this detection.
+        const SMART_DASH_PATTERN = /[\u2010-\u2015\u2212]/;
+
+        function detectSmartDashCells(rows) {
+            const fixes = [];
+            const shopDataStartRow = 3; // Excel row 4 (0-indexed row 3) is the first shop-data row
+
+            for (let r = shopDataStartRow; r < rows.length; r++) {
+                const row = rows[r];
+                if (!row) continue;
+
+                for (let c = 0; c < row.length; c++) {
+                    const currentValue = row[c];
+                    if (typeof currentValue !== 'string' || !SMART_DASH_PATTERN.test(currentValue)) continue;
+
+                    const fixed = currentValue.replace(/[\u2010-\u2015\u2212]/g, '-');
+                    const rawColName = state.templateRow3[c] || `คอลัมน์ที่ ${c + 1}`;
+                    fixes.push({
+                        excelRow: r + 1,
+                        colName: rawColName.split('\n')[0],
+                        original: currentValue,
+                        fixed: fixed
+                    });
+                }
+            }
+
+            return fixes;
+        }
+
         function processUploadedFiles() {
             const expectedRow1 = state.templateRow1;
             const expectedRow3 = state.templateRow3;
@@ -2677,6 +2711,15 @@
                 if (file.dateFixes && file.dateFixes.length > 0) {
                     file.dateFixes.forEach(fx => {
                         file.logs.push(`ℹ️ แถวที่ ${fx.excelRow} คอลัมน์ "${fx.colName}": Excel แปลงค่าเป็นวันที่ (${fx.original}) — ระบบแก้กลับเป็น "${fx.reconstructed}" ให้อัตโนมัติแล้ว`);
+                    });
+                }
+
+                // Smart-dash characters (en dash, em dash, etc.) get normalized to a
+                // plain hyphen unconditionally by cleanCellValue at output time — this
+                // just surfaces that it happened, same as the date-fix notice above.
+                if (file.dashFixes && file.dashFixes.length > 0) {
+                    file.dashFixes.forEach(fx => {
+                        file.logs.push(`ℹ️ แถวที่ ${fx.excelRow} คอลัมน์ "${fx.colName}": พบอักขระขีดพิเศษ ("${fx.original}") — ระบบแก้เป็นขีด - ปกติ ("${fx.fixed}") ให้อัตโนมัติแล้ว`);
                     });
                 }
 
