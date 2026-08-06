@@ -4,6 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <!-- Bump this alongside VERSION/SCRIPT_VERSION on every release — the page-version-check
+         script below compares it against the live VERSION file to auto-recover from a stale
+         cached copy of THIS page (the meta tags above are a weak hint at best; browsers mostly
+         ignore http-equiv Cache-Control for normal navigation, so this is the real fix). -->
+    <meta name="page-version" content="1.2.2">
     <title>PS · RSP Sync Check</title>
     <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%2306b6d4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Inter,Arial,sans-serif' font-weight='700' font-size='24' fill='white' letter-spacing='-1'%3ERS%3C/text%3E%3C/svg%3E">
@@ -462,7 +470,10 @@ EOF</code>
             showToast(`Parsed ${tickets.length} ticket(s)`, 'success');
         }
 
-        fetch('./VERSION').then(r => r.text()).then(v => {
+        // { cache: 'no-store' } forces this one request past the browser's HTTP cache —
+        // without it, a cached VERSION response would always match a cached page's own
+        // (equally stale) meta tag below, and staleness would never be detected at all.
+        fetch('./VERSION', { cache: 'no-store' }).then(r => r.text()).then(v => {
             const version = v.trim();
             const filename = `rsp_sync_check_v${version}.py`;
 
@@ -474,6 +485,15 @@ EOF</code>
             document.getElementById('cmd-dry-run').textContent = `python3 ${filename} --dry-run`;
             document.getElementById('cmd-live-run').textContent = `python3 ${filename}`;
             document.getElementById('cmd-dry-run-inline').textContent = `python3 ${filename} --dry-run`;
+
+            // This page's own HTML got cached by the browser with an old page-version meta
+            // tag baked in. Force one hard reload (cache-busted via a fresh query string) so
+            // the page catches up to the version it's already showing everywhere else above.
+            const pageVersion = document.querySelector('meta[name="page-version"]').content;
+            if (version !== pageVersion && !sessionStorage.getItem('rsp_cache_bust_done')) {
+                sessionStorage.setItem('rsp_cache_bust_done', '1');
+                location.replace(location.pathname + '?_v=' + version);
+            }
         }).catch(() => {
             document.getElementById('version-tag').remove();
         });

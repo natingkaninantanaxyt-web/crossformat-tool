@@ -78,6 +78,19 @@ response body — ครอบคลุม error ทุกแบบ ไม่ใ
 ถ้าไม่ตรงจะเตือนผู้ใช้ว่าไฟล์ที่โหลดไว้เก่าแล้ว ให้ไปโหลดใหม่ก่อน (ถาม y/N ว่าจะรันต่อทั้งที่เก่าไหม) — ถ้าลืม bump
 `VERSION` ตอน push การเตือนนี้จะไม่ทำงาน ผู้ใช้เก่าจะไม่รู้ตัวว่าไฟล์ตัวเองล้าสมัยไปแล้ว
 
+### หน้าเว็บ (`index.html`) เองก็ต้องเช็ค staleness เหมือนกัน
+
+พบปัญหาซ้ำหลายรอบว่า browser cache หน้า `index.html` เก่าไว้ (เห็นได้จาก Incognito แล้วเจอเวอร์ชันใหม่ถูกต้อง แต่
+หน้าปกติยังเก่าอยู่) — meta tag `Cache-Control`/`Pragma`/`Expires` ใน `<head>` ช่วยได้จำกัดมาก (browser ส่วนใหญ่ไม่แคร์
+http-equiv Cache-Control ตอน navigate ปกติ) ตัวที่แก้จริงคือ **meta tag `page-version`** เทียบกับ `VERSION` สด
+(fetch แบบ `{cache: 'no-store'}` กันปัญหา fetch ตัวเองก็ถูก cache ไปด้วย) ถ้าไม่ตรง = หน้านี้เป็นของเก่าที่ค้าง cache
+อยู่ → auto `location.replace` ไป URL เดิมแต่ต่อ query string ใหม่ (`?_v=<version>`) หนึ่งครั้งเพื่อ force ให้ browser
+fetch ทับของเก่า (กัน loop ด้วย `sessionStorage`)
+
+**สำคัญ: ทุกครั้งที่ bump `SCRIPT_VERSION`/`VERSION` ต้อง bump `<meta name="page-version" content="...">` ใน
+`index.html` ให้ตรงกันด้วย** ไม่งั้นกลไกนี้จะเข้าใจผิดว่าหน้าตัวเองเก่าอยู่ตลอด (เพราะเทียบกับเลขที่ไม่ได้อัปเดต)
+แล้ว reload วนหนึ่งครั้งเปล่าๆทุกรอบที่มีการ push เวอร์ชันสคริปต์ใหม่ทั้งที่หน้าเว็บจริงๆไม่ได้เปลี่ยน
+
 ## Running / developing
 
 - เปิด `rsp-sync-check/index.html` ตรงในเบราว์เซอร์ ไม่ต้อง install อะไร
