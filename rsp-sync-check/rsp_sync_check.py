@@ -302,7 +302,7 @@ def format_comment(ticket, missing, found_count):
 
 
 def main():
-    print(f"rsp_sync_check.py v{SCRIPT_VERSION}\n")
+    print(f"{Path(__file__).name} v{SCRIPT_VERSION}\n")
     check_for_updates()
 
     account = check_gcloud_ready()

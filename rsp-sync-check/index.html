@@ -289,21 +289,22 @@
                 <div class="card-body">
                     <p class="card-desc">script จะหา card "RSP Sync" ที่ยังไม่ปิดทั้งหมด เทียบ store list ใน card กับ log <code>FetchRetailPrice</code> ของ GCP แล้ว comment สถานะกลับที่ card (skip อัตโนมัติถ้าผลไม่เปลี่ยนจากครั้งก่อน)</p>
 
-                    <a class="btn-primary" href="./rsp_sync_check.py" download="rsp_sync_check.py">
+                    <a class="btn-primary" id="download-link" href="./rsp_sync_check.py" download="rsp_sync_check.py">
                         <i class="fa-solid fa-download"></i> ดาวน์โหลด rsp_sync_check.py
                     </a>
                     <span class="version-tag" id="version-tag">v...</span>
+                    <p class="card-desc" style="margin-top: 8px; margin-bottom: 0;">ไฟล์ที่โหลดจะมีเลขเวอร์ชันต่อท้ายชื่อไฟล์ (เช่น <code>rsp_sync_check_v1.2.0.py</code>) เพื่อให้เห็นชัดว่าไฟล์ไหนใหม่สุด — เปลี่ยนชื่อไฟล์ยังไงก็รันได้เหมือนกัน ไม่กระทบการทำงาน แค่ต้องพิมพ์คำสั่งให้ตรงกับชื่อไฟล์จริงที่ดาวน์โหลดมา (ก็อปคำสั่งด้านล่างนี้ได้เลย จะตรงกับชื่อไฟล์ให้อัตโนมัติ)</p>
 
                     <p class="cmd-label">เช็คดูก่อน ไม่โพสต์ comment จริง (dry-run):</p>
                     <div class="cmd-block">
-                        <code>python3 rsp_sync_check.py --dry-run</code>
-                        <button class="copy-btn" onclick="copyCmd(this, 'python3 rsp_sync_check.py --dry-run')"><i class="fa-regular fa-copy"></i></button>
+                        <code id="cmd-dry-run">python3 rsp_sync_check.py --dry-run</code>
+                        <button class="copy-btn" onclick="copyCmd(this, this.parentElement.querySelector('code').textContent)"><i class="fa-regular fa-copy"></i></button>
                     </div>
 
                     <p class="cmd-label">run จริง (โพสต์ comment ขึ้น Jira + assign card ให้ตัวเอง):</p>
                     <div class="cmd-block">
-                        <code>python3 rsp_sync_check.py</code>
-                        <button class="copy-btn" onclick="copyCmd(this, 'python3 rsp_sync_check.py')"><i class="fa-regular fa-copy"></i></button>
+                        <code id="cmd-live-run">python3 rsp_sync_check.py</code>
+                        <button class="copy-btn" onclick="copyCmd(this, this.parentElement.querySelector('code').textContent)"><i class="fa-regular fa-copy"></i></button>
                     </div>
 
                     <p class="cmd-label">ทุกครั้งที่ run script จะเช็คเวอร์ชันตัวเองกับเวอร์ชันล่าสุดบน GitHub ให้เอง — ถ้าเจอว่าเก่าจะเตือนและถามก่อนว่าจะรันต่อไหม ไม่ต้องมาเช็คเองว่าไฟล์เก่าหรือยัง</p>
@@ -351,7 +352,7 @@
 EOF</code>
                         <button class="copy-btn" onclick="copyCmd(this, this.parentElement.querySelector('code').textContent)"><i class="fa-regular fa-copy"></i></button>
                     </div>
-                    <p class="card-desc" style="margin-top: 12px; margin-bottom: 0;">แล้ว run <code>python3 rsp_sync_check.py --dry-run</code> ใหม่อีกครั้ง — ควรเห็นบรรทัด <code>Jira credentials from: /Users/&lt;your-username&gt;/.rsp_sync_check.json</code> แล้วตามด้วยรายชื่อ card ที่เจอ</p>
+                    <p class="card-desc" style="margin-top: 12px; margin-bottom: 0;">แล้ว run <code id="cmd-dry-run-inline">python3 rsp_sync_check.py --dry-run</code> ใหม่อีกครั้ง (ชื่อไฟล์ให้ดูจากที่ดาวน์โหลดจริงในแท็บ "วิธีใช้งาน") — ควรเห็นบรรทัด <code>Jira credentials from: /Users/&lt;your-username&gt;/.rsp_sync_check.json</code> แล้วตามด้วยรายชื่อ card ที่เจอ</p>
                 </div>
             </div>
         </section>
@@ -462,7 +463,17 @@ EOF</code>
         }
 
         fetch('./VERSION').then(r => r.text()).then(v => {
-            document.getElementById('version-tag').textContent = `v${v.trim()}`;
+            const version = v.trim();
+            const filename = `rsp_sync_check_v${version}.py`;
+
+            document.getElementById('version-tag').textContent = `v${version}`;
+
+            const downloadLink = document.getElementById('download-link');
+            downloadLink.download = filename;
+
+            document.getElementById('cmd-dry-run').textContent = `python3 ${filename} --dry-run`;
+            document.getElementById('cmd-live-run').textContent = `python3 ${filename}`;
+            document.getElementById('cmd-dry-run-inline').textContent = `python3 ${filename} --dry-run`;
         }).catch(() => {
             document.getElementById('version-tag').remove();
         });
