@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PS · RSP Sync Check</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%2306b6d4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Inter,Arial,sans-serif' font-weight='700' font-size='24' fill='white' letter-spacing='-1'%3ERS%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../shared/theme.css">
+    <style>
+        .page {
+            max-width: 880px;
+            margin: 0 auto;
+            padding: 48px 24px 64px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .page-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--primary) 0%, #06b6d4 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .page-header h1 {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-strong);
+        }
+
+        .page-header p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
+            padding: 24px;
+            margin-top: 24px;
+        }
+
+        .card h2 {
+            font-family: var(--font-heading);
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-strong);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .card h2 .step-num {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .card .card-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .checklist {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .checklist li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        .checklist li i {
+            color: var(--success);
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .checklist code {
+            background: var(--bg-recessed);
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            background: var(--bg-surface);
+            color: var(--text-strong);
+            cursor: pointer;
+            text-decoration: none;
+            transition: border-color var(--transition-speed) ease, transform var(--transition-speed) ease;
+        }
+
+        .btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        .cmd-block {
+            position: relative;
+            background: #0f172a;
+            border-radius: var(--radius-md);
+            padding: 14px 44px 14px 16px;
+            margin-top: 10px;
+        }
+
+        .cmd-block code {
+            font-family: var(--font-mono);
+            font-size: 12.5px;
+            color: #e2e8f0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .cmd-block .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            color: #cbd5e1;
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .cmd-block .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.16);
+            color: #fff;
+        }
+
+        .cmd-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-top: 18px;
+            margin-bottom: 0;
+        }
+
+        .cmd-label:first-child {
+            margin-top: 0;
+        }
+
+        textarea.paste-box {
+            width: 100%;
+            min-height: 140px;
+            font-family: var(--font-mono);
+            font-size: 12.5px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background: var(--bg-recessed);
+            color: var(--text-main);
+            resize: vertical;
+        }
+
+        .results {
+            margin-top: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .result-row {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+        }
+
+        .result-row .result-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .result-row .ticket-key {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 13px;
+        }
+
+        .result-row .ticket-summary {
+            font-size: 13px;
+            color: var(--text-main);
+            margin-left: 8px;
+        }
+
+        .sync-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .sync-badge.success {
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+        }
+
+        .sync-badge.warn {
+            background: var(--warning-bg);
+            color: var(--warning);
+            border: 1px solid var(--warning-border);
+        }
+
+        .missing-stores {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .store-chip {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            background: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid var(--danger-border);
+            padding: 2px 7px;
+            border-radius: var(--radius-sm);
+        }
+
+        .empty-state {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1f2937;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px 20px;
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        .toast.hidden {
+            transform: translateY(100px);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .toast-icon {
+            font-size: 18px;
+            color: var(--primary);
+        }
+
+        .toast-message {
+            font-size: 13px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+
+        .toast.toast-success .toast-icon {
+            color: var(--success);
+        }
+
+        .toast.toast-error .toast-icon {
+            color: var(--danger);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <a class="back-link" href="../index.html"><i class="fa-solid fa-arrow-left"></i> Front Automation Hub</a>
+
+        <div class="page-header">
+            <div class="page-icon"><i class="fa-solid fa-store"></i></div>
+            <div>
+                <h1>RSP Sync Check</h1>
+                <p>เช็คตั๋ว "RSP Sync" ที่ยังเปิดอยู่ใน Jira ว่าร้านไหน sync ราคาแล้วบ้าง ร้านไหนยังไม่ครบ</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><span class="step-num">i</span> วิธีทำงาน</h2>
+            <p class="card-desc">
+                หน้านี้เป็น static page ล้วน ไม่มี backend — จึงรัน <code>gcloud</code> และเรียก Jira API ตรงจากเบราว์เซอร์ไม่ได้
+                (ต้องใช้ personal login ของคุณเอง และ browser ก็ยิง request ตรงไปที่ jira.tdshop.io ไม่ได้เพราะ CORS/credential)
+                วิธีใช้จึงเป็น 3 ขั้นตอน: ดาวน์โหลดสคริปต์ → รันบนเครื่องคุณเอง (ใช้ gcloud/Jira token ที่มีอยู่แล้ว) → วางผลลัพธ์กลับมาดูเป็นตารางที่นี่
+            </p>
+        </div>
+
+        <div class="card">
+            <h2><span class="step-num">1</span> Prerequisites</h2>
+            <ul class="checklist">
+                <li><i class="fa-solid fa-circle-check"></i> ทำ <code>gcloud auth login</code> ไว้แล้ว และมีสิทธิ์อ่าน log บน project <code>tdshop-prod</code></li>
+                <li><i class="fa-solid fa-circle-check"></i> ใช้ Claude Code ที่เชื่อม mcp-atlassian ไว้แล้ว (สคริปต์อ่าน Jira token จาก <code>~/.claude.json</code> โดยอัตโนมัติ ไม่ต้องตั้งค่าเพิ่ม)</li>
+                <li><i class="fa-solid fa-circle-check"></i> มี Python 3 บนเครื่อง (macOS มีติดมาให้อยู่แล้ว)</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2><span class="step-num">2</span> ดาวน์โหลด & รันสคริปต์</h2>
+            <p class="card-desc">สคริปต์จะหาตั๋ว "RSP Sync" ที่ยังไม่ปิดทั้งหมด เทียบ store list ในตั๋วกับ log <code>FetchRetailPrice</code> ของ GCP แล้ว comment สถานะกลับที่ตั๋ว (skip อัตโนมัติถ้าผลไม่เปลี่ยนจากครั้งก่อน)</p>
+
+            <a class="btn btn-primary" href="./rsp_sync_check.py" download="rsp_sync_check.py">
+                <i class="fa-solid fa-download"></i> ดาวน์โหลด rsp_sync_check.py
+            </a>
+
+            <p class="cmd-label">เช็คดูก่อน ไม่โพสต์ comment จริง (dry-run):</p>
+            <div class="cmd-block">
+                <code>python3 rsp_sync_check.py --dry-run</code>
+                <button class="copy-btn" onclick="copyCmd(this, 'python3 rsp_sync_check.py --dry-run')"><i class="fa-regular fa-copy"></i></button>
+            </div>
+
+            <p class="cmd-label">รันจริง (โพสต์ comment ขึ้น Jira):</p>
+            <div class="cmd-block">
+                <code>python3 rsp_sync_check.py</code>
+                <button class="copy-btn" onclick="copyCmd(this, 'python3 rsp_sync_check.py')"><i class="fa-regular fa-copy"></i></button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><span class="step-num">3</span> วางผลลัพธ์เพื่อดูเป็นตาราง (ไม่บังคับ)</h2>
+            <p class="card-desc">คัดลอก output ทั้งหมดจาก terminal มาวางที่นี่ เพื่อดูสรุปแบบอ่านง่าย — ข้อมูลนี้ประมวลผลในเบราว์เซอร์ของคุณเท่านั้น ไม่ส่งไปที่ไหน</p>
+            <textarea id="paste-box" class="paste-box" placeholder="วาง output จาก terminal ที่นี่..."></textarea>
+            <button class="btn btn-primary" style="margin-top: 12px;" onclick="parseOutput()">
+                <i class="fa-solid fa-table-list"></i> แสดงผลเป็นตาราง
+            </button>
+
+            <div id="results" class="results"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden">
+        <i class="fa-solid fa-info-circle toast-icon"></i>
+        <span class="toast-message">Message goes here</span>
+    </div>
+
+    <script>
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = toast.querySelector('.toast-message');
+            const toastIcon = toast.querySelector('.toast-icon');
+
+            toast.className = 'toast';
+            let iconClass = 'fa-info-circle';
+            if (type === 'success') {
+                toast.classList.add('toast-success');
+                iconClass = 'fa-circle-check';
+            } else if (type === 'error') {
+                toast.classList.add('toast-error');
+                iconClass = 'fa-circle-xmark';
+            }
+            toastIcon.className = `fa-solid ${iconClass} toast-icon`;
+            toastMsg.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3500);
+        }
+
+        async function copyCmd(btn, text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('Copied to clipboard', 'success');
+            } catch (err) {
+                showToast('Copy failed — select the text manually', 'error');
+            }
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Parses the plain-text stdout of rsp_sync_check.py, e.g.:
+        // [SUP-13505] RSP Sync : Effective on 2026-08-04
+        //   stores=68 synced=64 missing=4 ['TH000267', 'TH003253', 'TH004321', 'TH006613']
+        function parseOutput() {
+            const raw = document.getElementById('paste-box').value;
+            const resultsEl = document.getElementById('results');
+            resultsEl.innerHTML = '';
+
+            if (!raw.trim()) {
+                showToast('วาง output ก่อนนะครับ', 'error');
+                return;
+            }
+
+            const headerRe = /^\[([A-Z][A-Z0-9_]+-\d+)\]\s*(.+)$/;
+            const statsRe = /^\s*stores=(\d+)\s+synced=(\d+)\s+missing=(\d+)\s+\[(.*)\]\s*$/;
+
+            const lines = raw.split('\n');
+            const tickets = [];
+            let current = null;
+
+            for (const line of lines) {
+                const h = line.match(headerRe);
+                if (h) {
+                    current = { key: h[1], summary: h[2].trim(), stores: null, synced: null, missing: [] };
+                    tickets.push(current);
+                    continue;
+                }
+                const s = line.match(statsRe);
+                if (s && current) {
+                    current.stores = parseInt(s[1], 10);
+                    current.synced = parseInt(s[2], 10);
+                    const missingRaw = s[4];
+                    current.missing = [...missingRaw.matchAll(/'([^']+)'/g)].map(m => m[1]);
+                }
+            }
+
+            if (tickets.length === 0) {
+                resultsEl.innerHTML = '<div class="empty-state">ไม่เจอ ticket ในข้อความที่วาง — ตรวจว่าคัดลอก output มาครบไหม</div>';
+                return;
+            }
+
+            for (const t of tickets) {
+                const row = document.createElement('div');
+                row.className = 'result-row';
+                const badgeClass = t.missing.length > 0 ? 'warn' : 'success';
+                const badgeText = t.stores != null ? `${t.synced}/${t.stores} synced` : 'parsed';
+                const chips = t.missing.map(s => `<span class="store-chip">${escapeHtml(s)}</span>`).join('');
+                row.innerHTML = `
+                    <div class="result-head">
+                        <div><span class="ticket-key">${escapeHtml(t.key)}</span><span class="ticket-summary">${escapeHtml(t.summary)}</span></div>
+                        <span class="sync-badge ${badgeClass}">${escapeHtml(badgeText)}</span>
+                    </div>
+                    ${chips ? `<div class="missing-stores">${chips}</div>` : ''}
+                `;
+                resultsEl.appendChild(row);
+            }
+
+            showToast(`Parsed ${tickets.length} ticket(s)`, 'success');
+        }
+    </script>
+</body>
+
+</html>
