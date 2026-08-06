@@ -32,13 +32,24 @@ transition (ดูหัวข้อด้านล่าง)
 อิงจาก workflow จริงที่ทีมใช้ปิดตั๋วพวกนี้ด้วยมืออยู่แล้ว (เช็คจากตั๋วเก่าที่ปิดไปแล้วอย่าง SUP-13505/13506):
 
 - **status = Open + ยังมีร้าน sync ไม่ครบ** → transition ไป **In Progress** + ติด flag `Impediment`
-  (ผ่าน custom field `customfield_10107`)
 - **status = In Progress + sync ครบทุกร้านแล้ว** → เอา flag ออก + transition ไป **Close** พร้อมตั้ง
   `resolution = "Won't Do"` และ `fixVersions = ["Won't Fix Release"]`
 
 Transition ID ไม่ได้ hardcode ไว้ — `get_transition_id` เรียก `/issue/{key}/transitions` สดทุกครั้งแล้วหาด้วย
 **ชื่อ** transition ("In Progress" / "Close") เพื่อกันปัญหาถ้า workflow เปลี่ยน ID ในอนาคต ถ้าหาไม่เจอ (เช่น
 workflow ถูกแก้ไปแล้ว) จะ print WARNING แล้วข้าม ไม่ทำให้ script ทั้งรอบ crash
+
+**เรื่อง flag (`set_flag`):** field `customfield_10107` (Flagged) เซ็ตผ่าน `PUT /issue/{key}` ธรรมดาไม่ได้ —
+Jira ตอบ 400 กับ `"errors": {"customfield_10107": "...not on the appropriate screen..."}` เพราะ field นี้ผูกกับ
+ปุ่ม Flag บน board เท่านั้น ไม่ได้อยู่บน edit screen ไหนเลย ต้องยิงไปที่ endpoint ของปุ่มนั้นตรงๆ (ไม่มี doc
+เป็นทางการ แต่ทดสอบแล้วใช้งานได้แน่นอน): `POST /rest/greenhopper/1.0/xboard/issue/flag/flag.json` body
+`{"issueKeys": [key], "flag": true/false}`
+
+**บั๊กที่เจอจากเรื่องนี้ (แก้แล้วใน v1.2.1):** `jira_request` เดิมเช็ค error จาก response แค่ key `errorMessages`
+ซึ่ง Jira ตอบ error field-validation แบบข้างบนมาที่ key `errors` (คนละ key) แทน — HTTP 400 จริงแต่ `errorMessages`
+เป็น `[]` (falsy) เลยไม่ raise exception ทำให้ script รายงานว่า "flagged" สำเร็จ ทั้งที่ Jira ไม่ได้เซ็ตอะไรให้เลย
+แก้โดยให้ `jira_request` เช็ค **HTTP status code จริงจาก curl** (`-w "\n%{http_code}"`) แทนการเดาจาก shape ของ
+response body — ครอบคลุม error ทุกแบบ ไม่ใช่แค่ที่ Jira เลือกจะใส่ใน `errorMessages`
 
 เช็ค permission ของ token ผ่าน `/rest/api/2/mypermissions?projectKey=SUP` แล้วว่า `ASSIGN_ISSUES`,
 `EDIT_ISSUES`, `TRANSITION_ISSUES`, `RESOLVE_ISSUES` ทุกตัว = true สำหรับ token ที่ทดสอบไว้ — token คนอื่นในทีม

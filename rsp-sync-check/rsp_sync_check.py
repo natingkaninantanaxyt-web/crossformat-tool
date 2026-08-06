@@ -34,7 +34,7 @@ import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.2.1"
 VERSION_URL = (
     "https://raw.githubusercontent.com/natingkaninantanaxyt-web/"
     "front-automation-hub/main/rsp-sync-check/VERSION"
@@ -50,7 +50,6 @@ JQL = (
 MARKER = "Auto RSP Sync Check"
 LOCAL_CONFIG_PATH = Path.home() / ".rsp_sync_check.json"
 
-FLAG_FIELD = "customfield_10107"
 FLAG_VALUE = "Impediment"
 RESOLUTION_WONT_DO = "Won't Do"
 FIX_VERSION_WONT_FIX = "Won't Fix Release"
@@ -147,6 +146,11 @@ def jira_request(base_url, token, path, method="GET", body=None):
     # certifi CA list may not include this org's internal CA. The token is
     # passed via a curl -K config file (mode 600), not argv, so it never
     # shows up in `ps`.
+    #
+    # -w appends "\n<http_code>" after the body so we can detect HTTP-level
+    # errors (400/403/404/...) ourselves — curl's own exit code stays 0 for
+    # those (it only reflects transport failures), so without this a failed
+    # request would silently look like success.
     url = f"{base_url}{path}"
     with tempfile.NamedTemporaryFile("w", suffix=".curlcfg", delete=False) as cfg:
         cfg.write(f'header = "Authorization: Bearer {token}"\n')
@@ -154,19 +158,16 @@ def jira_request(base_url, token, path, method="GET", body=None):
         cfg_path = cfg.name
     Path(cfg_path).chmod(0o600)
     try:
-        cmd = ["curl", "-sS", "-K", cfg_path, "-X", method, url]
+        cmd = ["curl", "-sS", "-K", cfg_path, "-X", method, "-w", "\n%{http_code}", url]
         if body is not None:
             cmd += ["--data-binary", json.dumps(body)]
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
         if proc.returncode != 0:
             raise RuntimeError(f"curl failed ({proc.returncode}): {proc.stderr.strip()}")
-        parsed = json.loads(proc.stdout) if proc.stdout.strip() else {}
-        if isinstance(parsed, dict) and parsed.get("errorMessages"):
-            raise RuntimeError(
-                f"Jira API error: {'; '.join(parsed['errorMessages'])} "
-                "(check that your Jira token is valid and not expired)"
-            )
-        return parsed
+        body_text, _, status_code = proc.stdout.rpartition("\n")
+        if int(status_code) >= 400:
+            raise RuntimeError(f"Jira API returned HTTP {status_code} for {method} {path}: {body_text.strip()[:500]}")
+        return json.loads(body_text) if body_text.strip() else {}
     finally:
         Path(cfg_path).unlink(missing_ok=True)
 
@@ -181,8 +182,14 @@ def set_assignee(base_url, token, issue_key, username):
 
 
 def set_flag(base_url, token, issue_key, flagged):
-    value = [{"value": FLAG_VALUE}] if flagged else []
-    jira_request(base_url, token, f"/rest/api/2/issue/{issue_key}", "PUT", {"fields": {FLAG_FIELD: value}})
+    # The "Flagged" field can't be set through the normal issue-edit API —
+    # Jira rejects it with "not on the appropriate screen" (HTTP 400) since
+    # it's only exposed via the board's flag action, not any edit screen.
+    # This is that action's actual (undocumented but stable) endpoint.
+    jira_request(
+        base_url, token, "/rest/greenhopper/1.0/xboard/issue/flag/flag.json", "POST",
+        {"issueKeys": [issue_key], "flag": flagged},
+    )
 
 
 def get_transition_id(base_url, token, issue_key, transition_name):
