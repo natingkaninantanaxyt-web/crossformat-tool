@@ -13,6 +13,9 @@ needs their own:
             {"jira_url": "https://jira.tdshop.io/", "jira_token": "..."}
        c. (fallback, for Claude Code users) ~/.claude.json's
           mcpServers.mcp-atlassian.env block
+
+On each live run, the ticket is also assigned to whoever's token ran the
+check, so it's obvious in Jira who most recently verified it.
 """
 import json
 import os
@@ -23,6 +26,12 @@ import sys
 import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+SCRIPT_VERSION = "1.1.0"
+VERSION_URL = (
+    "https://raw.githubusercontent.com/natingkaninantanaxyt-web/"
+    "front-automation-hub/main/rsp-sync-check/VERSION"
+)
 
 GCP_PROJECT = "tdshop-prod"
 LOG_NAME = "projects/tdshop-prod/logs/PosApp"
@@ -35,11 +44,37 @@ MARKER = "Auto RSP Sync Check"
 LOCAL_CONFIG_PATH = Path.home() / ".rsp_sync_check.json"
 
 DRY_RUN = "--dry-run" in sys.argv
+SKIP_UPDATE_CHECK = "--skip-update-check" in sys.argv
 
 
 def fail(message):
     print(f"\n✖ {message}\n", file=sys.stderr)
     sys.exit(1)
+
+
+def check_for_updates():
+    if SKIP_UPDATE_CHECK:
+        return
+    try:
+        proc = subprocess.run(
+            ["curl", "-fsS", "--max-time", "5", VERSION_URL],
+            capture_output=True, text=True,
+        )
+        if proc.returncode != 0:
+            return  # offline / blocked — don't block the run over this
+        latest = proc.stdout.strip()
+        if latest and latest != SCRIPT_VERSION:
+            print("=" * 70)
+            print(f"⚠ This script is OUTDATED (you have v{SCRIPT_VERSION}, latest is v{latest}).")
+            print("  Download the newest copy from the RSP Sync Check page before continuing —")
+            print("  results/behavior may be wrong or incomplete on this old version.")
+            print("=" * 70)
+            answer = input("Continue anyway with the outdated version? [y/N]: ").strip().lower()
+            if answer != "y":
+                sys.exit(1)
+            print()
+    except Exception:
+        return  # best-effort only, never crash the run over the update check
 
 
 def load_jira_creds():
@@ -120,6 +155,15 @@ def jira_request(base_url, token, path, method="GET", body=None):
         return parsed
     finally:
         Path(cfg_path).unlink(missing_ok=True)
+
+
+def get_current_user(base_url, token):
+    me = jira_request(base_url, token, "/rest/api/2/myself")
+    return me.get("name"), me.get("displayName")
+
+
+def set_assignee(base_url, token, issue_key, username):
+    jira_request(base_url, token, f"/rest/api/2/issue/{issue_key}/assignee", "PUT", {"name": username})
 
 
 def search_open_rsp_tickets(base_url, token):
@@ -224,10 +268,15 @@ def format_comment(ticket, missing, found_count):
 
 
 def main():
+    print(f"rsp_sync_check.py v{SCRIPT_VERSION}\n")
+    check_for_updates()
+
     account = check_gcloud_ready()
     base_url, token, creds_source = load_jira_creds()
+    username, display_name = get_current_user(base_url, token)
     print(f"gcloud account: {account}")
-    print(f"Jira credentials from: {creds_source}\n")
+    print(f"Jira credentials from: {creds_source}")
+    print(f"Running as: {display_name} ({username})\n")
 
     issues = search_open_rsp_tickets(base_url, token)
     if not issues:
@@ -250,9 +299,13 @@ def main():
         comment = format_comment(ticket, missing, found_count)
 
         if DRY_RUN:
+            print(f"  --- would assign to {display_name} ({username}) ---")
             print("  --- would post comment ---")
             print("  " + comment.replace("\n", "\n  "))
             continue
+
+        set_assignee(base_url, token, ticket["key"], username)
+        print(f"  assigned to {display_name} ({username})")
 
         if already_reported(base_url, token, ticket["key"], missing):
             print("  unchanged since last comment, skipping post")
