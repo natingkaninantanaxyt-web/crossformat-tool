@@ -14,8 +14,15 @@ needs their own:
        c. (fallback, for Claude Code users) ~/.claude.json's
           mcpServers.mcp-atlassian.env block
 
-On each live run, the ticket is also assigned to whoever's token ran the
-check, so it's obvious in Jira who most recently verified it.
+On each live run:
+  - the ticket is assigned to whoever's token ran the check, but ONLY if
+    it doesn't already have an assignee (never overwrites an existing one)
+  - if status is "Open" and stores are still missing, it transitions to
+    "In Progress" and adds the "Impediment" flag
+  - if status is "In Progress" and all stores are now synced, it removes
+    the flag and transitions to "Close" with resolution="Won't Do" and
+    Fix Version/s="Won't Fix Release" (matches how the team already
+    closes these tickets by hand)
 """
 import json
 import os
@@ -27,7 +34,7 @@ import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 VERSION_URL = (
     "https://raw.githubusercontent.com/natingkaninantanaxyt-web/"
     "front-automation-hub/main/rsp-sync-check/VERSION"
@@ -42,6 +49,13 @@ JQL = (
 )
 MARKER = "Auto RSP Sync Check"
 LOCAL_CONFIG_PATH = Path.home() / ".rsp_sync_check.json"
+
+FLAG_FIELD = "customfield_10107"
+FLAG_VALUE = "Impediment"
+RESOLUTION_WONT_DO = "Won't Do"
+FIX_VERSION_WONT_FIX = "Won't Fix Release"
+TRANSITION_IN_PROGRESS = "In Progress"
+TRANSITION_CLOSE = "Close"
 
 DRY_RUN = "--dry-run" in sys.argv
 SKIP_UPDATE_CHECK = "--skip-update-check" in sys.argv
@@ -166,10 +180,30 @@ def set_assignee(base_url, token, issue_key, username):
     jira_request(base_url, token, f"/rest/api/2/issue/{issue_key}/assignee", "PUT", {"name": username})
 
 
+def set_flag(base_url, token, issue_key, flagged):
+    value = [{"value": FLAG_VALUE}] if flagged else []
+    jira_request(base_url, token, f"/rest/api/2/issue/{issue_key}", "PUT", {"fields": {FLAG_FIELD: value}})
+
+
+def get_transition_id(base_url, token, issue_key, transition_name):
+    result = jira_request(base_url, token, f"/rest/api/2/issue/{issue_key}/transitions")
+    for t in result.get("transitions", []):
+        if t["name"] == transition_name:
+            return t["id"]
+    return None
+
+
+def transition_issue(base_url, token, issue_key, transition_id, fields=None):
+    body = {"transition": {"id": transition_id}}
+    if fields:
+        body["fields"] = fields
+    jira_request(base_url, token, f"/rest/api/2/issue/{issue_key}/transitions", "POST", body)
+
+
 def search_open_rsp_tickets(base_url, token):
     body = {
         "jql": JQL,
-        "fields": ["summary", "description", "status"],
+        "fields": ["summary", "description", "status", "assignee"],
         "maxResults": 50,
     }
     result = jira_request(base_url, token, "/rest/api/2/search", "POST", body)
@@ -293,26 +327,67 @@ def main():
         missing = sorted(set(ticket["stores"]) - found)
         found_count = len(ticket["stores"]) - len(missing)
 
-        print(f"[{ticket['key']}] {ticket['summary']}")
+        current_status = issue["fields"]["status"]["name"]
+        current_assignee = issue["fields"].get("assignee")
+
+        print(f"[{ticket['key']}] {ticket['summary']} (status={current_status})")
         print(f"  stores={len(ticket['stores'])} synced={found_count} missing={len(missing)} {missing}")
 
         comment = format_comment(ticket, missing, found_count)
 
         if DRY_RUN:
-            print(f"  --- would assign to {display_name} ({username}) ---")
+            if current_assignee:
+                print(f"  assignee already set ({current_assignee.get('displayName')}), would leave unchanged")
+            else:
+                print(f"  --- would assign to {display_name} ({username}) ---")
             print("  --- would post comment ---")
             print("  " + comment.replace("\n", "\n  "))
+            if current_status == "Open" and missing:
+                print(f"  --- would transition Open -> {TRANSITION_IN_PROGRESS}, flag as '{FLAG_VALUE}' ---")
+            elif current_status == "In Progress" and not missing:
+                print(
+                    f"  --- would unflag, transition -> {TRANSITION_CLOSE} "
+                    f"(resolution='{RESOLUTION_WONT_DO}', fixVersion='{FIX_VERSION_WONT_FIX}') ---"
+                )
             continue
 
-        set_assignee(base_url, token, ticket["key"], username)
-        print(f"  assigned to {display_name} ({username})")
+        if current_assignee:
+            print(f"  assignee already set ({current_assignee.get('displayName')}), leaving unchanged")
+        else:
+            set_assignee(base_url, token, ticket["key"], username)
+            print(f"  assigned to {display_name} ({username})")
 
         if already_reported(base_url, token, ticket["key"], missing):
             print("  unchanged since last comment, skipping post")
-            continue
+        else:
+            post_comment(base_url, token, ticket["key"], comment)
+            print("  comment posted")
 
-        post_comment(base_url, token, ticket["key"], comment)
-        print("  comment posted")
+        if current_status == "Open" and missing:
+            tid = get_transition_id(base_url, token, ticket["key"], TRANSITION_IN_PROGRESS)
+            if tid:
+                transition_issue(base_url, token, ticket["key"], tid)
+                set_flag(base_url, token, ticket["key"], True)
+                print(f"  status: Open -> {TRANSITION_IN_PROGRESS}, flagged as '{FLAG_VALUE}'")
+            else:
+                print(f"  WARNING: '{TRANSITION_IN_PROGRESS}' transition not available, status unchanged")
+        elif current_status == "In Progress" and not missing:
+            tid = get_transition_id(base_url, token, ticket["key"], TRANSITION_CLOSE)
+            if tid:
+                set_flag(base_url, token, ticket["key"], False)
+                transition_issue(
+                    base_url, token, ticket["key"], tid,
+                    fields={
+                        "resolution": {"name": RESOLUTION_WONT_DO},
+                        "fixVersions": [{"name": FIX_VERSION_WONT_FIX}],
+                    },
+                )
+                print(
+                    f"  status: In Progress -> {TRANSITION_CLOSE}, unflagged, "
+                    f"resolution='{RESOLUTION_WONT_DO}', fixVersion='{FIX_VERSION_WONT_FIX}'"
+                )
+            else:
+                print(f"  WARNING: '{TRANSITION_CLOSE}' transition not available, status unchanged")
 
 
 if __name__ == "__main__":

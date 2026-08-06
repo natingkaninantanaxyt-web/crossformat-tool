@@ -278,7 +278,7 @@
                         หน้านี้เป็น static page ล้วน ไม่มี backend — จึงrun  <code>gcloud</code> และเรียก Jira API ตรงจากเบราว์เซอร์ไม่ได้
                         (ต้องใช้ personal login ของคุณเอง และ browser ก็ยิง request ตรงไปที่ jira.tdshop.io ไม่ได้เพราะ CORS/credential)
                         วิธีใช้จึงเป็น 3 ขั้นตอน: ดาวน์โหลด script → run บนเครื่องคุณเอง (ใช้ gcloud/Jira token ที่มีอยู่แล้ว) → วางผลลัพธ์กลับมาดูเป็นตารางที่นี่<br><br>
-                        ตอน run จริง (ไม่ใส่ <code>--dry-run</code>) script จะ assign card ให้เป็นชื่อคนที่ run ด้วยตัวเอง (ตาม Jira token ที่ใช้) เพื่อให้รู้ว่าใครเช็คล่าสุด และ script จะเช็คเวอร์ชันตัวเองกับ GitHub ให้ทุกครั้งที่ run — ถ้าเก่าไปจะเตือนให้โหลดใหม่ก่อน<br><br>
+                        ตอน run จริง (ไม่ใส่ <code>--dry-run</code>) script จะ assign card ให้เป็นชื่อคนที่ run ด้วยตัวเอง (เฉพาะตอนยังไม่มี assignee — ถ้ามีอยู่แล้วจะไม่ไปแก้) และเปลี่ยน status ให้ตรงกับสถานะ sync จริงอัตโนมัติ: ตั๋วที่ยัง Open และ sync ไม่ครบ จะถูกย้ายไป <strong>In Progress</strong> พร้อมติด flag ส่วนตั๋วที่ In Progress อยู่แล้วและ sync ครบทุกร้าน จะถูกปิด (<strong>Close</strong>) พร้อมเอา flag ออกและตั้ง Resolution/Fix Version ให้ตามที่ทีมปิดกันด้วยมืออยู่แล้ว และ script จะเช็คเวอร์ชันตัวเองกับ GitHub ให้ทุกครั้งที่ run — ถ้าเก่าไปจะเตือนให้โหลดใหม่ก่อน<br><br>
                         <strong>ยังไม่เคยเตรียมเครื่อง หรือรันแล้วเจอ error?</strong> ไปที่แท็บ "เตรียมเครื่อง & แก้ปัญหา" ด้านบนก่อนได้เลย
                     </p>
                 </div>

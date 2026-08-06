@@ -23,8 +23,26 @@
 label `PS_Front` + summary มีคำว่า "RSP Sync" + ยังไม่ปิด) → `parse_ticket` (ดึง barcode/store list/effective
 date จาก wiki-table ใน description ด้วย regex) → `query_synced_stores` (สร้าง `gcloud logging read` filter
 จาก store list + barcode + event `FetchRetailPrice`) → diff เทียบ store list กับที่เจอใน log → `set_assignee`
-(assign ticket ให้เป็นคนที่ run ตาม token ที่ใช้ — เฉพาะตอน run จริง ไม่ใช่ `--dry-run`) → `post_comment` (skip
-ถ้าผลลัพธ์เหมือน comment ล่าสุดที่มี marker `Auto RSP Sync Check` อยู่แล้ว)
+(assign ticket ให้เป็นคนที่ run ตาม token ที่ใช้ — **เฉพาะถ้ายังไม่มี assignee เดิม** ไม่งั้นข้ามไปเลย) →
+`post_comment` (skip ถ้าผลลัพธ์เหมือน comment ล่าสุดที่มี marker `Auto RSP Sync Check` อยู่แล้ว) → status/flag
+transition (ดูหัวข้อด้านล่าง)
+
+### Status transitions + flag
+
+อิงจาก workflow จริงที่ทีมใช้ปิดตั๋วพวกนี้ด้วยมืออยู่แล้ว (เช็คจากตั๋วเก่าที่ปิดไปแล้วอย่าง SUP-13505/13506):
+
+- **status = Open + ยังมีร้าน sync ไม่ครบ** → transition ไป **In Progress** + ติด flag `Impediment`
+  (ผ่าน custom field `customfield_10107`)
+- **status = In Progress + sync ครบทุกร้านแล้ว** → เอา flag ออก + transition ไป **Close** พร้อมตั้ง
+  `resolution = "Won't Do"` และ `fixVersions = ["Won't Fix Release"]`
+
+Transition ID ไม่ได้ hardcode ไว้ — `get_transition_id` เรียก `/issue/{key}/transitions` สดทุกครั้งแล้วหาด้วย
+**ชื่อ** transition ("In Progress" / "Close") เพื่อกันปัญหาถ้า workflow เปลี่ยน ID ในอนาคต ถ้าหาไม่เจอ (เช่น
+workflow ถูกแก้ไปแล้ว) จะ print WARNING แล้วข้าม ไม่ทำให้ script ทั้งรอบ crash
+
+เช็ค permission ของ token ผ่าน `/rest/api/2/mypermissions?projectKey=SUP` แล้วว่า `ASSIGN_ISSUES`,
+`EDIT_ISSUES`, `TRANSITION_ISSUES`, `RESOLVE_ISSUES` ทุกตัว = true สำหรับ token ที่ทดสอบไว้ — token คนอื่นในทีม
+ที่ role เดียวกันควรจะผ่านหมดเหมือนกัน แต่ถ้า role ต่างกันอาจต้องเช็คซ้ำ
 
 **Jira credential** resolve ตามลำดับ (ดู `load_jira_creds`) เพื่อให้ทุกคนในทีมรันได้ ไม่ต้องพึ่ง Claude Code:
 1. env vars `JIRA_URL` / `JIRA_PERSONAL_TOKEN`
