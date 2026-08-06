@@ -34,7 +34,7 @@ import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-SCRIPT_VERSION = "1.2.1"
+SCRIPT_VERSION = "1.2.2"
 VERSION_URL = (
     "https://raw.githubusercontent.com/natingkaninantanaxyt-web/"
     "front-automation-hub/main/rsp-sync-check/VERSION"
@@ -349,13 +349,18 @@ def main():
                 print(f"  --- would assign to {display_name} ({username}) ---")
             print("  --- would post comment ---")
             print("  " + comment.replace("\n", "\n  "))
-            if current_status == "Open" and missing:
-                print(f"  --- would transition Open -> {TRANSITION_IN_PROGRESS}, flag as '{FLAG_VALUE}' ---")
-            elif current_status == "In Progress" and not missing:
-                print(
-                    f"  --- would unflag, transition -> {TRANSITION_CLOSE} "
-                    f"(resolution='{RESOLUTION_WONT_DO}', fixVersion='{FIX_VERSION_WONT_FIX}') ---"
-                )
+            preview_status = current_status
+            if preview_status == "Open" and missing:
+                print(f"  --- would transition Open -> {TRANSITION_IN_PROGRESS} ---")
+                preview_status = TRANSITION_IN_PROGRESS
+            if preview_status == TRANSITION_IN_PROGRESS:
+                if missing:
+                    print(f"  --- would (re)flag as '{FLAG_VALUE}' ---")
+                else:
+                    print(
+                        f"  --- would unflag, transition -> {TRANSITION_CLOSE} "
+                        f"(resolution='{RESOLUTION_WONT_DO}', fixVersion='{FIX_VERSION_WONT_FIX}') ---"
+                    )
             continue
 
         if current_assignee:
@@ -374,27 +379,35 @@ def main():
             tid = get_transition_id(base_url, token, ticket["key"], TRANSITION_IN_PROGRESS)
             if tid:
                 transition_issue(base_url, token, ticket["key"], tid)
-                set_flag(base_url, token, ticket["key"], True)
-                print(f"  status: Open -> {TRANSITION_IN_PROGRESS}, flagged as '{FLAG_VALUE}'")
+                current_status = TRANSITION_IN_PROGRESS
+                print(f"  status: Open -> {TRANSITION_IN_PROGRESS}")
             else:
                 print(f"  WARNING: '{TRANSITION_IN_PROGRESS}' transition not available, status unchanged")
-        elif current_status == "In Progress" and not missing:
-            tid = get_transition_id(base_url, token, ticket["key"], TRANSITION_CLOSE)
-            if tid:
-                set_flag(base_url, token, ticket["key"], False)
-                transition_issue(
-                    base_url, token, ticket["key"], tid,
-                    fields={
-                        "resolution": {"name": RESOLUTION_WONT_DO},
-                        "fixVersions": [{"name": FIX_VERSION_WONT_FIX}],
-                    },
-                )
-                print(
-                    f"  status: In Progress -> {TRANSITION_CLOSE}, unflagged, "
-                    f"resolution='{RESOLUTION_WONT_DO}', fixVersion='{FIX_VERSION_WONT_FIX}'"
-                )
+
+        # Re-checked every run (not just on the Open -> In Progress edge above) so a
+        # ticket that was already In Progress but never got flagged — e.g. because an
+        # earlier run hit the flag-endpoint bug fixed in v1.2.1 — gets caught up here.
+        if current_status == TRANSITION_IN_PROGRESS:
+            if missing:
+                set_flag(base_url, token, ticket["key"], True)
+                print(f"  flagged as '{FLAG_VALUE}'")
             else:
-                print(f"  WARNING: '{TRANSITION_CLOSE}' transition not available, status unchanged")
+                tid = get_transition_id(base_url, token, ticket["key"], TRANSITION_CLOSE)
+                if tid:
+                    set_flag(base_url, token, ticket["key"], False)
+                    transition_issue(
+                        base_url, token, ticket["key"], tid,
+                        fields={
+                            "resolution": {"name": RESOLUTION_WONT_DO},
+                            "fixVersions": [{"name": FIX_VERSION_WONT_FIX}],
+                        },
+                    )
+                    print(
+                        f"  status: In Progress -> {TRANSITION_CLOSE}, unflagged, "
+                        f"resolution='{RESOLUTION_WONT_DO}', fixVersion='{FIX_VERSION_WONT_FIX}'"
+                    )
+                else:
+                    print(f"  WARNING: '{TRANSITION_CLOSE}' transition not available, status unchanged")
 
 
 if __name__ == "__main__":

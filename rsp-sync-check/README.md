@@ -31,9 +31,15 @@ transition (ดูหัวข้อด้านล่าง)
 
 อิงจาก workflow จริงที่ทีมใช้ปิดตั๋วพวกนี้ด้วยมืออยู่แล้ว (เช็คจากตั๋วเก่าที่ปิดไปแล้วอย่าง SUP-13505/13506):
 
-- **status = Open + ยังมีร้าน sync ไม่ครบ** → transition ไป **In Progress** + ติด flag `Impediment`
-- **status = In Progress + sync ครบทุกร้านแล้ว** → เอา flag ออก + transition ไป **Close** พร้อมตั้ง
+- **status = Open + ยังมีร้าน sync ไม่ครบ** → transition ไป **In Progress**
+- **status = In Progress** (ไม่ว่าจะเพิ่ง transition มาจาก Open ในรอบนี้ หรือเป็น In Progress มาจากรอบก่อนแล้วก็ตาม)
+  → เช็ค missing ซ้ำทุกรอบแล้ว **reconcile flag ให้ตรงกับสถานะจริงเสมอ**: ถ้ายัง sync ไม่ครบ ติด flag `Impediment`
+  ไว้ (ติดซ้ำก็ไม่เป็นไร, idempotent) ถ้า sync ครบแล้วเอา flag ออก + transition ไป **Close** พร้อมตั้ง
   `resolution = "Won't Do"` และ `fixVersions = ["Won't Fix Release"]`
+
+จุดสำคัญ: การเช็ค flag **ไม่ได้ผูกอยู่กับจังหวะ transition Open→In Progress เท่านั้น** เพราะถ้าทำแบบนั้น ตั๋วที่
+เข้า In Progress ไปแล้วตั้งแต่รอบก่อน (เช่นเจอบั๊ก endpoint ผิดใน v1.2.0 ที่ทำให้ flag ไม่ติดจริง) จะไม่มีทาง
+ถูก flag ซ้ำได้อีกเลยในรอบต่อๆไป เพราะ status ไม่ใช่ "Open" แล้ว — เช็คทุกรอบจาก missing ปัจจุบันจึงกันปัญหานี้ได้
 
 Transition ID ไม่ได้ hardcode ไว้ — `get_transition_id` เรียก `/issue/{key}/transitions` สดทุกครั้งแล้วหาด้วย
 **ชื่อ** transition ("In Progress" / "Close") เพื่อกันปัญหาถ้า workflow เปลี่ยน ID ในอนาคต ถ้าหาไม่เจอ (เช่น
