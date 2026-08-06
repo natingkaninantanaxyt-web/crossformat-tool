@@ -263,3 +263,175 @@ body {
 .back-to-top:hover {
     background: var(--primary-hover);
 }
+
+/* ==========================================================================
+   CARD
+   Canonical shape every module builds on: .card > .card-header + .card-body.
+   .card-header h3 takes either an .icon-accent icon or a .step-num circle
+   as its leading marker.
+   ========================================================================== */
+.card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h3 {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-strong);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-header .header-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: normal;
+    margin-top: 4px;
+}
+
+.icon-accent {
+    color: var(--primary);
+}
+
+.step-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.card-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.badge {
+    background: rgba(15, 23, 42, 0.05);
+    border: 1px solid var(--border-color);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   BUTTONS
+   ========================================================================== */
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-link {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all var(--transition-speed) ease;
+    border: none;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: #ffffff;
+    padding: 10px 20px;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+}
+
+.btn-secondary {
+    background: rgba(15, 23, 42, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 9px 18px;
+}
+
+.btn-secondary:hover {
+    background: rgba(15, 23, 42, 0.08);
+    border-color: var(--border-color-hover);
+}
+
+.btn-success {
+    background: var(--success);
+    color: #ffffff;
+    padding: 10px 20px;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-success:hover {
+    background: #0d9488;
+}
+
+.btn-success:disabled,
+.btn-primary:disabled {
+    background: rgba(15, 23, 42, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.btn-link {
+    background: transparent;
+    padding: 0;
+    font-size: 12px;
+}
+
+.btn-link.text-danger {
+    color: var(--danger);
+}
+
+.btn-link.text-danger:hover {
+    color: #f43f5e;
+    text-decoration: underline;
+}
+
+.btn-sm {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    border-radius: 4px !important;
+}
+
+.action-group {
+    display: flex;
+    gap: 8px;
+}

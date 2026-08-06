@@ -145,63 +145,7 @@
             }
         }
 
-        /* ==========================================================================
-   CARD & CONTAINER STYLE
-   ========================================================================== */
-        .card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-premium);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .card-header {
-            padding: 12px 20px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .card-header h3 {
-            font-family: var(--font-heading);
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-strong);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .card-header .header-desc {
-            font-size: 13px;
-            color: var(--text-muted);
-            font-weight: normal;
-            margin-top: 4px;
-        }
-
-        .icon-accent {
-            color: var(--primary);
-        }
-
-        .card-body {
-            padding: 20px;
-        }
-
-        .badge {
-            background: rgba(15, 23, 42, 0.05);
-            border: 1px solid var(--border-color);
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            letter-spacing: 0.5px;
-        }
+        /* .card/.card-header/.icon-accent/.card-body/.badge live in /shared/theme.css */
 
         /* ==========================================================================
    DEPLOY TO SFTP CARD (Step 3)
@@ -450,95 +394,7 @@
             display: none;
         }
 
-        /* ==========================================================================
-   BUTTONS
-   ========================================================================== */
-        .btn-primary,
-        .btn-secondary,
-        .btn-success,
-        .btn-link {
-            font-family: var(--font-body);
-            font-weight: 600;
-            font-size: 13px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all var(--transition-speed) ease;
-            border: none;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: #ffffff;
-            padding: 10px 20px;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-hover);
-            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
-        }
-
-        .btn-secondary {
-            background: rgba(15, 23, 42, 0.05);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 9px 18px;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(15, 23, 42, 0.08);
-            border-color: var(--border-color-hover);
-        }
-
-        .btn-success {
-            background: var(--success);
-            color: #ffffff;
-            padding: 10px 20px;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-success:hover {
-            background: #0d9488;
-        }
-
-        .btn-success:disabled,
-        .btn-primary:disabled {
-            background: rgba(15, 23, 42, 0.05);
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-
-        .btn-link {
-            background: transparent;
-            padding: 0;
-            font-size: 12px;
-        }
-
-        .btn-link.text-danger {
-            color: var(--danger);
-        }
-
-        .btn-link.text-danger:hover {
-            color: #f43f5e;
-            text-decoration: underline;
-        }
-
-        .btn-sm {
-            padding: 6px 12px !important;
-            font-size: 12px !important;
-            border-radius: 4px !important;
-        }
-
-        .action-group {
-            display: flex;
-            gap: 8px;
-        }
+        /* .btn-primary/.btn-secondary/.btn-success/.btn-link/.btn-sm/.action-group live in /shared/theme.css */
 
         /* ==========================================================================
    METADATA CONFIGURATION PANEL (DATE & PARTNER ID)
@@ -1242,87 +1098,8 @@
         /* .toast family now lives in /shared/theme.css */
 
         /* ==========================================================================
-   TERMINAL DEPLOY STEPPER TIMELINE
+   DEPLOY STEP COMMANDS (inline code chip + copy button, used inside .deploy-steps ol)
    ========================================================================== */
-        .deploy-steps-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            padding: 24px;
-        }
-
-        .deploy-step-card {
-            background: rgba(15, 23, 42, 0.02);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            position: relative;
-            transition: all var(--transition-speed) ease;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .deploy-step-card:hover {
-            border-color: rgba(99, 102, 241, 0.3);
-            background: rgba(15, 23, 42, 0.03);
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
-        }
-
-        .deploy-step-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .step-badge {
-            background: var(--primary-light);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            color: var(--primary);
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .step-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-strong);
-        }
-
-        .step-explanation {
-            font-size: 13px;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-
-        .step-cmd-box {
-            background: var(--bg-recessed);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            padding: 12px 16px;
-            font-family: var(--font-mono);
-            font-size: 12.5px;
-            color: #1f2937;
-            position: relative;
-            overflow-x: auto;
-            white-space: pre;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .step-cmd-text {
-            flex-grow: 1;
-            overflow-x: auto;
-        }
-
         .btn-copy-step-cmd {
             background: rgba(15, 23, 42, 0.05);
             border: 1px solid var(--border-color);
@@ -1350,48 +1127,6 @@
             background: var(--primary);
             color: #ffffff;
             border-color: var(--primary);
-        }
-
-        .sftp-commands-sublist {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 4px;
-            padding-left: 16px;
-            border-left: 2px solid rgba(15, 23, 42, 0.12);
-        }
-
-        .sftp-command-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(15, 23, 42, 0.05);
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-family: var(--font-mono);
-            font-size: 12px;
-        }
-
-        .sftp-creds-container {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            margin-top: 4px;
-            background: rgba(245, 158, 11, 0.05);
-            border: 1px dashed rgba(245, 158, 11, 0.2);
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-size: 13px;
-        }
-
-        .sftp-creds-label {
-            font-weight: 600;
-            color: var(--warning);
-        }
-
-        .sftp-creds-value {
-            font-family: var(--font-mono);
-            color: var(--text-strong);
         }
 
         /* ==========================================================================
