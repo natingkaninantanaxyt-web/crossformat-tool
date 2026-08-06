@@ -15,43 +15,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="shared/theme.css">
     <style>
+        /* .page-header/.page-icon live in /shared/theme.css */
         .page {
             max-width: 960px;
             margin: 0 auto;
             padding: 64px 24px 48px;
         }
 
-        .hub-header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 8px;
-        }
-
-        .hub-logo {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--radius-md);
-            background: linear-gradient(135deg, var(--primary) 0%, #06b6d4 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-
-        .hub-header h1 {
-            font-family: var(--font-heading);
+        .page-header h1 {
             font-size: 26px;
-            font-weight: 700;
-            color: var(--text-strong);
-        }
-
-        .hub-header p {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-top: 2px;
         }
 
         .module-grid {
@@ -149,8 +121,8 @@
 
 <body>
     <div class="page">
-        <div class="hub-header">
-            <div class="hub-logo"><i class="fa-solid fa-layer-group"></i></div>
+        <div class="page-header">
+            <div class="page-icon"><i class="fa-solid fa-layer-group"></i></div>
             <div>
                 <h1>Front Automation Hub</h1>
                 <p>รวม automation ของทีมไว้ที่เดียว เลือกใช้งานได้จากด้านล่าง</p>
@@ -182,6 +154,8 @@
             Front Automation Hub — internal tools for the team.
         </div>
     </div>
+
+    <script src="shared/back-to-top.js"></script>
 </body>
 
 </html>

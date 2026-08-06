@@ -2,13 +2,25 @@
 """Daily check: which stores on open Jira "RSP Sync" tickets haven't synced yet,
 per GCP PosApp logs, and comment the status back on the ticket.
 
-Reuses the Jira credentials already configured for the mcp-atlassian MCP server
-(read from ~/.claude.json) so no new secrets need to be created.
+Runs on ANY teammate's machine — no dependency on Claude Code. Each person
+needs their own:
+  1. gcloud CLI installed + `gcloud auth login` + read access to Cloud
+     Logging on the tdshop-prod project (ask an admin if you get a
+     permission error).
+  2. A Jira Personal Access Token, supplied via ONE of (checked in order):
+       a. env vars JIRA_URL / JIRA_PERSONAL_TOKEN
+       b. a config file at ~/.rsp_sync_check.json:
+            {"jira_url": "https://jira.tdshop.io/", "jira_token": "..."}
+       c. (fallback, for Claude Code users) ~/.claude.json's
+          mcpServers.mcp-atlassian.env block
 """
 import json
+import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -20,23 +32,72 @@ JQL = (
     "AND statusCategory != Done ORDER BY created ASC"
 )
 MARKER = "Auto RSP Sync Check"
+LOCAL_CONFIG_PATH = Path.home() / ".rsp_sync_check.json"
 
 DRY_RUN = "--dry-run" in sys.argv
 
 
+def fail(message):
+    print(f"\n✖ {message}\n", file=sys.stderr)
+    sys.exit(1)
+
+
 def load_jira_creds():
-    cfg = json.loads(Path.home().joinpath(".claude.json").read_text())
-    env = cfg["mcpServers"]["mcp-atlassian"]["env"]
-    return env["JIRA_URL"].rstrip("/"), env["JIRA_PERSONAL_TOKEN"]
+    url = os.environ.get("JIRA_URL")
+    token = os.environ.get("JIRA_PERSONAL_TOKEN")
+    if url and token:
+        return url.rstrip("/"), token, "environment variables"
+
+    if LOCAL_CONFIG_PATH.exists():
+        try:
+            cfg = json.loads(LOCAL_CONFIG_PATH.read_text())
+            url, token = cfg.get("jira_url"), cfg.get("jira_token")
+            if url and token:
+                return url.rstrip("/"), token, str(LOCAL_CONFIG_PATH)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    claude_cfg_path = Path.home() / ".claude.json"
+    if claude_cfg_path.exists():
+        try:
+            cfg = json.loads(claude_cfg_path.read_text())
+            env = cfg.get("mcpServers", {}).get("mcp-atlassian", {}).get("env", {})
+            url, token = env.get("JIRA_URL"), env.get("JIRA_PERSONAL_TOKEN")
+            if url and token:
+                return url.rstrip("/"), token, "~/.claude.json (mcp-atlassian)"
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    fail(
+        "Jira credentials not found. Set them up with ONE of these options:\n\n"
+        "  Option A - environment variables (this terminal session only):\n"
+        '    export JIRA_URL="https://jira.tdshop.io/"\n'
+        '    export JIRA_PERSONAL_TOKEN="<your Personal Access Token>"\n\n'
+        f"  Option B - config file (persists across sessions), create {LOCAL_CONFIG_PATH} with:\n"
+        '    {"jira_url": "https://jira.tdshop.io/", "jira_token": "<your Personal Access Token>"}\n\n'
+        "  Get a Personal Access Token from Jira: avatar (top right) -> Profile -> "
+        "Personal Access Tokens -> Create token"
+    )
+
+
+def check_gcloud_ready():
+    if not shutil.which("gcloud"):
+        fail(
+            "`gcloud` CLI not found on this machine.\n"
+            "  Install it from: https://cloud.google.com/sdk/docs/install"
+        )
+    proc = subprocess.run(["gcloud", "config", "get-value", "account"], capture_output=True, text=True)
+    account = proc.stdout.strip()
+    if not account or account == "(unset)":
+        fail("No active gcloud account.\n  Run: gcloud auth login")
+    return account
 
 
 def jira_request(base_url, token, path, method="GET", body=None):
-    # Uses curl (macOS system trust store) instead of urllib, whose bundled
-    # certifi CA list doesn't include this org's internal CA. The token is
+    # Uses curl (system trust store) instead of urllib, whose bundled
+    # certifi CA list may not include this org's internal CA. The token is
     # passed via a curl -K config file (mode 600), not argv, so it never
     # shows up in `ps`.
-    import tempfile
-
     url = f"{base_url}{path}"
     with tempfile.NamedTemporaryFile("w", suffix=".curlcfg", delete=False) as cfg:
         cfg.write(f'header = "Authorization: Bearer {token}"\n')
@@ -50,7 +111,13 @@ def jira_request(base_url, token, path, method="GET", body=None):
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
         if proc.returncode != 0:
             raise RuntimeError(f"curl failed ({proc.returncode}): {proc.stderr.strip()}")
-        return json.loads(proc.stdout) if proc.stdout.strip() else {}
+        parsed = json.loads(proc.stdout) if proc.stdout.strip() else {}
+        if isinstance(parsed, dict) and parsed.get("errorMessages"):
+            raise RuntimeError(
+                f"Jira API error: {'; '.join(parsed['errorMessages'])} "
+                "(check that your Jira token is valid and not expired)"
+            )
+        return parsed
     finally:
         Path(cfg_path).unlink(missing_ok=True)
 
@@ -101,8 +168,17 @@ def query_synced_stores(ticket):
             "gcloud", "logging", "read", log_filter,
             f"--project={GCP_PROJECT}", "--limit=2000", "--format=json",
         ],
-        capture_output=True, text=True, check=True,
+        capture_output=True, text=True,
     )
+    if proc.returncode != 0:
+        stderr = proc.stderr.strip()
+        if "PERMISSION_DENIED" in stderr or "403" in stderr:
+            fail(
+                f"Permission denied reading logs on project '{GCP_PROJECT}'.\n"
+                "  Ask a GCP admin to grant you the 'Logs Viewer' (roles/logging.viewer) role.\n"
+                f"  Raw error: {stderr}"
+            )
+        fail(f"`gcloud logging read` failed:\n  {stderr}")
     entries = json.loads(proc.stdout) if proc.stdout.strip() else []
     found = set()
     for e in entries:
@@ -148,7 +224,11 @@ def format_comment(ticket, missing, found_count):
 
 
 def main():
-    base_url, token = load_jira_creds()
+    account = check_gcloud_ready()
+    base_url, token, creds_source = load_jira_creds()
+    print(f"gcloud account: {account}")
+    print(f"Jira credentials from: {creds_source}\n")
+
     issues = search_open_rsp_tickets(base_url, token)
     if not issues:
         print("No open RSP Sync tickets found.")

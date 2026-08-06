@@ -19,181 +19,22 @@
     <link rel="stylesheet" href="../shared/theme.css">
     <!-- Main Stylesheet -->
     <style>
-        /* Design tokens, base reset, and body styles live in /shared/theme.css */
-        /* ==========================================================================
-   APP LAYOUT CONTAINER
-   ========================================================================== */
-        .app-container {
-            display: flex;
-            min-height: 100vh;
+        /* Design tokens, base reset, body styles, .page/.back-link/.page-header/.tab-switcher/.toast live in /shared/theme.css */
+        .page-wide {
+            max-width: 1140px;
         }
 
         /* ==========================================================================
-   SIDEBAR COMPONENT
+   SECTION HEADING (title/desc for the active tab + system status)
    ========================================================================== */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--bg-surface-hover);
-            border-right: 1px solid var(--border-color);
-            padding: 20px 16px;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            transition: width var(--transition-speed) ease, padding var(--transition-speed) ease;
-        }
-
-        .sidebar.collapsed {
-            width: 68px;
-            padding: 20px 10px;
-        }
-
-        .sidebar.collapsed .brand {
-            justify-content: center;
-        }
-
-        .sidebar.collapsed .logo-icon,
-        .sidebar.collapsed .brand-text,
-        .sidebar.collapsed .nav-item span,
-        .sidebar.collapsed .theme-info span {
-            display: none;
-        }
-
-        .sidebar.collapsed .nav-item,
-        .sidebar.collapsed .theme-info {
-            justify-content: center;
-        }
-
-        .sidebar-toggle {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 15px;
-            width: 28px;
-            height: 28px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            flex-shrink: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: all var(--transition-speed) ease;
-        }
-
-        .sidebar-toggle:hover {
-            color: var(--text-main);
-            background: rgba(15, 23, 42, 0.06);
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 8px 24px 8px;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 20px;
-        }
-
-        .logo-icon {
-            font-size: 28px;
-            color: var(--primary);
-        }
-
-        .brand-text h1 {
-            font-family: var(--font-heading);
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            background: linear-gradient(135deg, var(--text-strong) 30%, var(--primary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .brand-text span {
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 500;
-            display: block;
-            margin-top: 2px;
-        }
-
-        .nav-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            flex-grow: 1;
-        }
-
-        .nav-item {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 12px 16px;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            font-family: var(--font-body);
-            font-size: 14px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-align: left;
-            transition: all var(--transition-speed) ease;
-        }
-
-        .nav-item i {
-            font-size: 16px;
-            width: 20px;
-            text-align: center;
-        }
-
-        .nav-item:hover {
-            color: var(--text-main);
-            background: rgba(15, 23, 42, 0.05);
-        }
-
-        .nav-item.active {
-            color: #ffffff;
-            background: var(--primary);
-            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
-        }
-
-        .sidebar-footer {
-            padding-top: 16px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .theme-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: var(--text-muted);
-            padding: 8px;
-        }
-
-        .theme-info i {
-            color: var(--primary);
-        }
-
-        /* ==========================================================================
-   MAIN CONTENT WORKSPACE
-   ========================================================================== */
-        .main-content {
-            flex-grow: 1;
-            padding: 20px 32px;
-            overflow-y: auto;
-            max-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
         .workspace-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 10px;
+            margin-top: 20px;
+            margin-bottom: 12px;
         }
 
         .header-title h2 {
@@ -1398,67 +1239,7 @@
             padding: 24px;
         }
 
-        /* ==========================================================================
-   TOAST NOTIFICATION MODAL
-   ========================================================================== */
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: #1f2937;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 14px 20px;
-            box-shadow: var(--shadow-premium);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 9999;
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .toast.hidden {
-            transform: translateY(100px);
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .toast-icon {
-            font-size: 18px;
-            color: var(--primary);
-        }
-
-        .toast-message {
-            font-size: 13px;
-            font-weight: 500;
-            color: #ffffff;
-        }
-
-        .toast.toast-success {
-            border-left: 4px solid var(--success);
-        }
-
-        .toast.toast-success .toast-icon {
-            color: var(--success);
-        }
-
-        .toast.toast-error {
-            border-left: 4px solid var(--danger);
-        }
-
-        .toast.toast-error .toast-icon {
-            color: var(--danger);
-        }
-
-        .toast.toast-warning {
-            border-left: 4px solid var(--warning);
-        }
-
-        .toast.toast-warning .toast-icon {
-            color: var(--warning);
-        }
+        /* .toast family now lives in /shared/theme.css */
 
         /* ==========================================================================
    TERMINAL DEPLOY STEPPER TIMELINE
@@ -1625,69 +1406,46 @@
             border-radius: 2px;
         }
 
-        .nav-item[href] {
-            text-decoration: none;
-        }
     </style>
     <!-- SheetJS for Excel Parsing -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 
 <body>
-    <div class="app-container">
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar">
-            <div class="brand">
-                <button class="sidebar-toggle" id="btn-sidebar-toggle" aria-label="Toggle sidebar" title="Toggle sidebar">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-                <i class="fa-solid fa-file-excel logo-icon"></i>
-                <div class="brand-text">
-                    <h1>Platform</h1>
-                    <span>Cross Format</span>
-                </div>
+    <div class="page page-wide">
+        <a class="back-link" href="../"><i class="fa-solid fa-arrow-left"></i> Front Automation Hub</a>
+
+        <div class="page-header">
+            <div class="page-icon"><i class="fa-solid fa-file-excel"></i></div>
+            <div>
+                <h1>CrossFormat</h1>
+                <p>แปลงไฟล์ Excel ทะเบียนร้านค้าเป็น .txt แบบ pipe-delimited พร้อมตรวจสอบโครงสร้างและ deploy ขึ้น SFTP</p>
             </div>
+        </div>
 
-            <nav class="nav-menu">
-                <button class="nav-item active" data-tab="converter" id="btn-tab-converter">
-                    <i class="fa-solid fa-rotate"></i>
-                    <span>Convert & Validate</span>
-                </button>
+        <div class="tab-switcher">
+            <button class="tab-btn active" data-tab="converter" id="btn-tab-converter">
+                <i class="fa-solid fa-rotate"></i> Convert & Validate
+            </button>
+            <button class="tab-btn" data-tab="settings" id="btn-tab-settings">
+                <i class="fa-solid fa-sliders"></i> Template Settings
+            </button>
+        </div>
 
-                <button class="nav-item" data-tab="settings" id="btn-tab-settings">
-                    <i class="fa-solid fa-sliders"></i>
-                    <span>Template Settings</span>
-                </button>
-            </nav>
-
-            <div class="sidebar-footer">
-                <a class="nav-item" href="../">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    <span>Automation Hub</span>
-                </a>
-                <div class="theme-info">
-                    <i class="fa-solid fa-sun"></i>
-                    <span>Light Theme</span>
-                </div>
+        <!-- Header Section -->
+        <header class="workspace-header">
+            <div class="header-title">
+                <h2 id="current-tab-title">Convert & Validate Excel Files</h2>
+                <p id="current-tab-desc">Upload Excel files — they are converted, validated, and verified
+                    automatically in one step.</p>
             </div>
-        </aside>
+            <div class="status-indicator">
+                <span class="indicator-dot green"></span>
+                <span id="system-status">System Ready</span>
+            </div>
+        </header>
 
-        <!-- Main Workspace -->
-        <main class="main-content">
-            <!-- Header Section -->
-            <header class="workspace-header">
-                <div class="header-title">
-                    <h2 id="current-tab-title">Convert & Validate Excel Files</h2>
-                    <p id="current-tab-desc">Upload Excel files — they are converted, validated, and verified
-                        automatically in one step.</p>
-                </div>
-                <div class="status-indicator">
-                    <span class="indicator-dot green"></span>
-                    <span id="system-status">System Ready</span>
-                </div>
-            </header>
-
-            <!-- Tab 1: Converter & Validator Content -->
+        <!-- Tab 1: Converter & Validator Content -->
             <section id="tab-converter" class="tab-pane active">
                 <div class="grid-layout">
                     <!-- Left Panel: File Input & Selected List -->
@@ -1938,7 +1696,6 @@
                     </div>
                 </div>
             </section>
-        </main>
     </div>
 
     <!-- Notification Toast -->
@@ -2111,36 +1868,15 @@
             initSettingsPanel();
             initDragAndDrop();
             initEventListeners();
-            initSidebarToggle();
-
-
 
             updateSystemStatus('System Ready', 'green');
         });
 
         // ==========================================================================
-        // SIDEBAR COLLAPSE TOGGLE
-        // ==========================================================================
-        function initSidebarToggle() {
-            const sidebar = document.querySelector('.sidebar');
-            const toggleBtn = document.getElementById('btn-sidebar-toggle');
-            if (!sidebar || !toggleBtn) return;
-
-            if (localStorage.getItem('df_sidebar_collapsed') === '1') {
-                sidebar.classList.add('collapsed');
-            }
-
-            toggleBtn.addEventListener('click', () => {
-                sidebar.classList.toggle('collapsed');
-                localStorage.setItem('df_sidebar_collapsed', sidebar.classList.contains('collapsed') ? '1' : '0');
-            });
-        }
-
-        // ==========================================================================
         // TAB NAVIGATION CONTROL
         // ==========================================================================
         function initTabs() {
-            const navItems = document.querySelectorAll('.nav-item');
+            const navItems = document.querySelectorAll('.tab-btn');
             const tabPanes = document.querySelectorAll('.tab-pane');
             const tabTitle = document.getElementById('current-tab-title');
             const tabDesc = document.getElementById('current-tab-desc');
@@ -3462,6 +3198,8 @@
 
 
     </script>
+
+    <script src="../shared/back-to-top.js"></script>
 </body>
 
 </html>
