@@ -17,8 +17,38 @@
     <style>
         /* .page/.back-link/.page-header/.page-icon/.toast/.card/.card-header/.card-body/.step-num/.card-desc live in /shared/theme.css */
 
+        .page-wide {
+            max-width: 1140px;
+        }
+
         .card {
             margin-top: 24px;
+        }
+
+        .tab-pane {
+            display: none;
+            flex-direction: column;
+            animation: fadeIn var(--transition-speed) ease-in-out;
+        }
+
+        .tab-pane.active {
+            display: flex;
+        }
+
+        .tab-pane .card:first-child {
+            margin-top: 24px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .checklist {
@@ -220,7 +250,7 @@
 </head>
 
 <body>
-    <div class="page">
+    <div class="page page-wide">
         <a class="back-link" href="../index.html"><i class="fa-solid fa-arrow-left"></i> Front Automation Hub</a>
 
         <div class="page-header">
@@ -231,76 +261,58 @@
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header"><h3><span class="step-num">i</span> วิธีทำงาน</h3></div>
-            <div class="card-body">
-                <p class="card-desc">
-                    หน้านี้เป็น static page ล้วน ไม่มี backend — จึงrun  <code>gcloud</code> และเรียก Jira API ตรงจากเบราว์เซอร์ไม่ได้
-                    (ต้องใช้ personal login ของคุณเอง และ browser ก็ยิง request ตรงไปที่ jira.tdshop.io ไม่ได้เพราะ CORS/credential)
-                    วิธีใช้จึงเป็น 3 ขั้นตอน: ดาวน์โหลด script → run บนเครื่องคุณเอง (ใช้ gcloud/Jira token ที่มีอยู่แล้ว) → วางผลลัพธ์กลับมาดูเป็นตารางที่นี่<br><br>
-                    ตอน run จริง (ไม่ใส่ <code>--dry-run</code>) script จะ assign card ให้เป็นชื่อคนที่ run ด้วยตัวเอง (ตาม Jira token ที่ใช้) เพื่อให้รู้ว่าใครเช็คล่าสุด และ script จะเช็คเวอร์ชันตัวเองกับ GitHub ให้ทุกครั้งที่ run — ถ้าเก่าไปจะเตือนให้โหลดใหม่ก่อน
-                </p>
-            </div>
+        <div class="tab-switcher">
+            <button class="tab-btn active" data-tab="usage" id="btn-tab-usage">
+                <i class="fa-solid fa-play"></i> วิธีใช้งาน
+            </button>
+            <button class="tab-btn" data-tab="setup" id="btn-tab-setup">
+                <i class="fa-solid fa-screwdriver-wrench"></i> เตรียมเครื่อง & แก้ปัญหา
+            </button>
         </div>
 
-        <div class="card">
-            <div class="card-header"><h3><span class="step-num">1</span> Prerequisites</h3></div>
-            <div class="card-body">
-                <ul class="checklist">
-                    <li><i class="fa-solid fa-circle-check"></i> <span>ทำ <code>gcloud auth login</code> ไว้แล้ว และมีสิทธิ์อ่าน log บน project <code>tdshop-prod</code> (ขอสิทธิ์ <code>Logs Viewer</code> จาก admin ถ้ายังไม่มี)</span></li>
-                    <li><i class="fa-solid fa-circle-check"></i> <span>มี Jira Personal Access Token ของตัวเอง — ถ้าใช้ Claude Code + mcp-atlassian อยู่แล้ว script จะดึงให้อัตโนมัติ ไม่ต้องตั้งอะไรเพิ่ม ถ้า<strong>ไม่ได้ใช้ Claude Code</strong> ให้ดูวิธีตั้งค่าที่การ์ด "ถ้า run แล้ว error" ด้านล่าง</span></li>
-                    <li><i class="fa-solid fa-circle-check"></i> <span>มี Python 3 บนเครื่อง (macOS มีติดมาให้อยู่แล้ว)</span></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header"><h3><span class="step-num">2</span> ดาวน์โหลด & run script</h3></div>
-            <div class="card-body">
-                <p class="card-desc">script จะหา card "RSP Sync" ที่ยังไม่ปิดทั้งหมด เทียบ store list ใน card กับ log <code>FetchRetailPrice</code> ของ GCP แล้ว comment สถานะกลับที่ card (skip อัตโนมัติถ้าผลไม่เปลี่ยนจากครั้งก่อน)</p>
-
-                <a class="btn-primary" href="./rsp_sync_check.py" download="rsp_sync_check.py">
-                    <i class="fa-solid fa-download"></i> ดาวน์โหลด rsp_sync_check.py
-                </a>
-                <span class="version-tag" id="version-tag">v...</span>
-
-                <p class="cmd-label">เช็คดูก่อน ไม่โพสต์ comment จริง (dry-run):</p>
-                <div class="cmd-block">
-                    <code>python3 rsp_sync_check.py --dry-run</code>
-                    <button class="copy-btn" onclick="copyCmd(this, 'python3 rsp_sync_check.py --dry-run')"><i class="fa-regular fa-copy"></i></button>
+        <section id="tab-usage" class="tab-pane active">
+            <div class="card">
+                <div class="card-header"><h3><span class="step-num">i</span> วิธีทำงาน</h3></div>
+                <div class="card-body">
+                    <p class="card-desc">
+                        หน้านี้เป็น static page ล้วน ไม่มี backend — จึงrun  <code>gcloud</code> และเรียก Jira API ตรงจากเบราว์เซอร์ไม่ได้
+                        (ต้องใช้ personal login ของคุณเอง และ browser ก็ยิง request ตรงไปที่ jira.tdshop.io ไม่ได้เพราะ CORS/credential)
+                        วิธีใช้จึงเป็น 3 ขั้นตอน: ดาวน์โหลด script → run บนเครื่องคุณเอง (ใช้ gcloud/Jira token ที่มีอยู่แล้ว) → วางผลลัพธ์กลับมาดูเป็นตารางที่นี่<br><br>
+                        ตอน run จริง (ไม่ใส่ <code>--dry-run</code>) script จะ assign card ให้เป็นชื่อคนที่ run ด้วยตัวเอง (ตาม Jira token ที่ใช้) เพื่อให้รู้ว่าใครเช็คล่าสุด และ script จะเช็คเวอร์ชันตัวเองกับ GitHub ให้ทุกครั้งที่ run — ถ้าเก่าไปจะเตือนให้โหลดใหม่ก่อน<br><br>
+                        <strong>ยังไม่เคยเตรียมเครื่อง หรือรันแล้วเจอ error?</strong> ไปที่แท็บ "เตรียมเครื่อง & แก้ปัญหา" ด้านบนก่อนได้เลย
+                    </p>
                 </div>
-
-                <p class="cmd-label">run จริง (โพสต์ comment ขึ้น Jira + assign card ให้ตัวเอง):</p>
-                <div class="cmd-block">
-                    <code>python3 rsp_sync_check.py</code>
-                    <button class="copy-btn" onclick="copyCmd(this, 'python3 rsp_sync_check.py')"><i class="fa-regular fa-copy"></i></button>
-                </div>
-
-                <p class="cmd-label">ทุกครั้งที่ run script จะเช็คเวอร์ชันตัวเองกับเวอร์ชันล่าสุดบน GitHub ให้เอง — ถ้าเจอว่าเก่าจะเตือนและถามก่อนว่าจะรันต่อไหม ไม่ต้องมาเช็คเองว่าไฟล์เก่าหรือยัง</p>
             </div>
-        </div>
 
-        <div class="card card-warning">
-            <div class="card-header"><h3><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i> ถ้า run แล้ว error "Jira credentials not found"</h3></div>
-            <div class="card-body">
-                <p class="card-desc">ขึ้นครั้งแรกที่ run เพราะยังไม่เคยตั้ง Jira token ของตัวเองไว้บนเครื่องนี้ (ปกติสำหรับคนที่ไม่ได้ใช้ Claude Code) — ทำตามนี้ครั้งเดียวจบ:</p>
-                <ol class="checklist" style="list-style: decimal; padding-left: 18px;">
-                    <li><span>เข้า <a href="https://jira.tdshop.io/" target="_blank" rel="noopener">jira.tdshop.io</a> → คลิก avatar มุมขวาบน → <strong>Profile</strong> → <strong>Personal Access Tokens</strong> → <strong>Create token</strong> → copy token ที่ได้ไว้ (โผล่ให้เห็นครั้งเดียว)</span></li>
-                    <li><span>เปิด Terminal แล้วรันคำสั่งนี้ (แทนที่ <code>PASTE_TOKEN_HERE</code> ด้วย token ที่ copy มา):</span></li>
-                </ol>
-                <div class="cmd-block">
-                    <code>cat &gt; ~/.rsp_sync_check.json &lt;&lt; 'EOF'
-{"jira_url": "https://jira.tdshop.io/", "jira_token": "PASTE_TOKEN_HERE"}
-EOF</code>
-                    <button class="copy-btn" onclick="copyCmd(this, this.parentElement.querySelector('code').textContent)"><i class="fa-regular fa-copy"></i></button>
+            <div class="card">
+                <div class="card-header"><h3><span class="step-num">1</span> ดาวน์โหลด & run script</h3></div>
+                <div class="card-body">
+                    <p class="card-desc">script จะหา card "RSP Sync" ที่ยังไม่ปิดทั้งหมด เทียบ store list ใน card กับ log <code>FetchRetailPrice</code> ของ GCP แล้ว comment สถานะกลับที่ card (skip อัตโนมัติถ้าผลไม่เปลี่ยนจากครั้งก่อน)</p>
+
+                    <a class="btn-primary" href="./rsp_sync_check.py" download="rsp_sync_check.py">
+                        <i class="fa-solid fa-download"></i> ดาวน์โหลด rsp_sync_check.py
+                    </a>
+                    <span class="version-tag" id="version-tag">v...</span>
+
+                    <p class="cmd-label">เช็คดูก่อน ไม่โพสต์ comment จริง (dry-run):</p>
+                    <div class="cmd-block">
+                        <code>python3 rsp_sync_check.py --dry-run</code>
+                        <button class="copy-btn" onclick="copyCmd(this, 'python3 rsp_sync_check.py --dry-run')"><i class="fa-regular fa-copy"></i></button>
+                    </div>
+
+                    <p class="cmd-label">run จริง (โพสต์ comment ขึ้น Jira + assign card ให้ตัวเอง):</p>
+                    <div class="cmd-block">
+                        <code>python3 rsp_sync_check.py</code>
+                        <button class="copy-btn" onclick="copyCmd(this, 'python3 rsp_sync_check.py')"><i class="fa-regular fa-copy"></i></button>
+                    </div>
+
+                    <p class="cmd-label">ทุกครั้งที่ run script จะเช็คเวอร์ชันตัวเองกับเวอร์ชันล่าสุดบน GitHub ให้เอง — ถ้าเจอว่าเก่าจะเตือนและถามก่อนว่าจะรันต่อไหม ไม่ต้องมาเช็คเองว่าไฟล์เก่าหรือยัง</p>
                 </div>
-                <p class="card-desc" style="margin-top: 12px; margin-bottom: 0;">แล้ว run <code>python3 rsp_sync_check.py --dry-run</code> ใหม่อีกครั้ง — ควรเห็นบรรทัด <code>Jira credentials from: /Users/&lt;your-username&gt;/.rsp_sync_check.json</code> แล้วตามด้วยรายชื่อ card ที่เจอ</p>
             </div>
-        </div>
 
-        <div class="card">
-            <div class="card-header"><h3><span class="step-num">3</span> วางผลลัพธ์เพื่อดูเป็นตาราง (ไม่บังคับ)</h3></div>
-            <div class="card-body">
+            <div class="card">
+                <div class="card-header"><h3><span class="step-num">2</span> วางผลลัพธ์เพื่อดูเป็นตาราง (ไม่บังคับ)</h3></div>
+                <div class="card-body">
                 <p class="card-desc">คัดลอก output ทั้งหมดจาก terminal มาวางที่นี่ เพื่อดูสรุปแบบอ่านง่าย — ข้อมูลนี้ประมวลผลในเบราว์เซอร์ของคุณเท่านั้น ไม่ส่งไปที่ไหน</p>
                 <textarea id="paste-box" class="paste-box" placeholder="วาง output จาก terminal ที่นี่..."></textarea>
                 <button class="btn-primary" style="margin-top: 12px;" onclick="parseOutput()">
@@ -309,7 +321,40 @@ EOF</code>
 
                 <div id="results" class="results"></div>
             </div>
-        </div>
+            </div>
+        </section>
+
+        <section id="tab-setup" class="tab-pane">
+            <div class="card">
+                <div class="card-header"><h3><i class="fa-solid fa-list-check"></i> Prerequisites</h3></div>
+                <div class="card-body">
+                    <p class="card-desc">ต้องมี 3 อย่างนี้ก่อน script จะรันได้ครับ:</p>
+                    <ul class="checklist">
+                        <li><i class="fa-solid fa-circle-check"></i> <span><strong>เข้า Google Cloud ได้</strong> — เปิด Terminal พิมพ์ <code>gcloud auth login</code> แล้ว login ด้วย account งานของตัวเอง ถ้า login แล้วแต่ยังรันไม่ผ่าน (ขึ้น permission denied) ให้ขอสิทธิ์ <code>Logs Viewer</code> บน project <code>tdshop-prod</code> จาก admin</span></li>
+                        <li><i class="fa-solid fa-circle-check"></i> <span><strong>มี Jira token ของตัวเอง</strong> — ถ้าคุณใช้ Claude Code + mcp-atlassian อยู่แล้ว ข้ามข้อนี้ไปได้เลย (script ดึงให้อัตโนมัติ) ถ้า<strong>ไม่ได้ใช้ Claude Code</strong> ให้ทำตามการ์ด "ถ้า run แล้ว error" ด้านล่างนี้ก่อน 1 รอบ</span></li>
+                        <li><i class="fa-solid fa-circle-check"></i> <span><strong>มี Python 3</strong> — เครื่อง Mac ทุกเครื่องมีติดมาให้อยู่แล้ว ไม่ต้องติดตั้งเพิ่ม</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card card-warning">
+                <div class="card-header"><h3><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i> ถ้า run แล้ว error "Jira credentials not found"</h3></div>
+                <div class="card-body">
+                    <p class="card-desc">ขึ้นครั้งแรกที่ run เพราะยังไม่เคยตั้ง Jira token ของตัวเองไว้บนเครื่องนี้ (ปกติสำหรับคนที่ไม่ได้ใช้ Claude Code) — ทำตามนี้ครั้งเดียวจบ:</p>
+                    <ol class="checklist" style="list-style: decimal; padding-left: 18px;">
+                        <li><span>เข้า <a href="https://jira.tdshop.io/" target="_blank" rel="noopener">jira.tdshop.io</a> → คลิก avatar มุมขวาบน → <strong>Profile</strong> → <strong>Personal Access Tokens</strong> → <strong>Create token</strong> → copy token ที่ได้ไว้ (โผล่ให้เห็นครั้งเดียว)</span></li>
+                        <li><span>เปิด Terminal แล้วรันคำสั่งนี้ (แทนที่ <code>PASTE_TOKEN_HERE</code> ด้วย token ที่ copy มา):</span></li>
+                    </ol>
+                    <div class="cmd-block">
+                        <code>cat &gt; ~/.rsp_sync_check.json &lt;&lt; 'EOF'
+{"jira_url": "https://jira.tdshop.io/", "jira_token": "PASTE_TOKEN_HERE"}
+EOF</code>
+                        <button class="copy-btn" onclick="copyCmd(this, this.parentElement.querySelector('code').textContent)"><i class="fa-regular fa-copy"></i></button>
+                    </div>
+                    <p class="card-desc" style="margin-top: 12px; margin-bottom: 0;">แล้ว run <code>python3 rsp_sync_check.py --dry-run</code> ใหม่อีกครั้ง — ควรเห็นบรรทัด <code>Jira credentials from: /Users/&lt;your-username&gt;/.rsp_sync_check.json</code> แล้วตามด้วยรายชื่อ card ที่เจอ</p>
+                </div>
+            </div>
+        </section>
     </div>
 
     <div id="toast" class="toast hidden">
@@ -421,6 +466,26 @@ EOF</code>
         }).catch(() => {
             document.getElementById('version-tag').remove();
         });
+
+        function initTabs() {
+            const navItems = document.querySelectorAll('.tab-btn');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const tabId = item.getAttribute('data-tab');
+
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+
+                    tabPanes.forEach(pane => {
+                        pane.classList.toggle('active', pane.id === `tab-${tabId}`);
+                    });
+                });
+            });
+        }
+
+        initTabs();
     </script>
 
     <script src="../shared/back-to-top.js"></script>
