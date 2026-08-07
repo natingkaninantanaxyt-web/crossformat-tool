@@ -17,12 +17,15 @@ needs their own:
 On each live run:
   - the ticket is assigned to whoever's token ran the check, but ONLY if
     it doesn't already have an assignee (never overwrites an existing one)
-  - if status is "Open" and stores are still missing, it transitions to
-    "In Progress" and adds the "Impediment" flag
-  - if status is "In Progress" and all stores are now synced, it removes
-    the flag and transitions to "Close" with resolution="Won't Do" and
-    Fix Version/s="Won't Fix Release" (matches how the team already
-    closes these tickets by hand)
+  - if status is "Open" it always transitions to "In Progress" first
+    (whether or not stores are still missing — a ticket found already
+    fully synced while still Open passes straight through to Close below
+    in the same run, it doesn't get stuck waiting on a separate pass)
+  - once in "In Progress": if stores are still missing, adds the
+    "Impediment" flag; if all stores are now synced, removes the flag
+    (never left on when closing) and transitions to "Close" with
+    resolution="Won't Do" and Fix Version/s="Won't Fix Release" (matches
+    how the team already closes these tickets by hand)
 """
 import json
 import os
@@ -34,7 +37,7 @@ import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-SCRIPT_VERSION = "1.2.2"
+SCRIPT_VERSION = "1.2.3"
 VERSION_URL = (
     "https://raw.githubusercontent.com/natingkaninantanaxyt-web/"
     "front-automation-hub/main/rsp-sync-check/VERSION"
@@ -350,7 +353,7 @@ def main():
             print("  --- would post comment ---")
             print("  " + comment.replace("\n", "\n  "))
             preview_status = current_status
-            if preview_status == "Open" and missing:
+            if preview_status == "Open":
                 print(f"  --- would transition Open -> {TRANSITION_IN_PROGRESS} ---")
                 preview_status = TRANSITION_IN_PROGRESS
             if preview_status == TRANSITION_IN_PROGRESS:
@@ -375,7 +378,7 @@ def main():
             post_comment(base_url, token, ticket["key"], comment)
             print("  comment posted")
 
-        if current_status == "Open" and missing:
+        if current_status == "Open":
             tid = get_transition_id(base_url, token, ticket["key"], TRANSITION_IN_PROGRESS)
             if tid:
                 transition_issue(base_url, token, ticket["key"], tid)
